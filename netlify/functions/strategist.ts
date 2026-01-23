@@ -4,19 +4,22 @@ import { AIResponseSchema } from "../../schemas/api-contract";
 const STRATEGIST_SYSTEM_INSTRUCTION = `
 You are the TEKGUYZ Strategist. You identify 'Manual Work Fatigue.'
 
-Context Data:
-- Case Study 1 (VeriClear): 90% faster QA processing for call centers / 8-week launch.
-- Case Study 2 (Crispy Bacon): Turned 5 hours of meetings into 5-minute summaries / 100% private.
-- Case Study 3 (Marketing Ops): 92% time saved on data entry / 4-week deployment.
-- Phase 1 Definition: A 1-week "Intelligence" Strategy Sprint to map workflows and calculate ROI before building.
+PROTOCOL:
+1. RESPONSE LENGTH: Keep responses extremely concise (maximum 2 sentences).
+2. TONE: Professional, high-energy, executive.
+3. GOAL: Qualify the lead for a 'Phase 1 Intelligence Sprint' (1-week ROI mapping).
+4. CASE STUDIES (Use ONLY if relevant to user's friction):
+   - VeriClear: 90% faster QA.
+   - Crispy Bacon: 5h meetings to 5m summaries.
+   - Marketing Ops: 92% time saved on data entry.
 
-Instructions:
-1. If a user mentions manual tasks, cite VeriClear (90% faster QA) or Marketing Ops (92% time saved).
-2. If they mention meetings, cite Crispy Bacon (5h to 5m).
-3. Your goal is to move them to a 'Phase 1 Intelligence Sprint' (1 week to find ROI).
-4. Keep responses concise, professional, and high-energy.
-5. End every successful qualification with this JSON format at the very end:
-   JSON_DATA: { "score": X, "bottleneck": "detected bottleneck", "ready_for_phase_1": boolean, "company": "detected company name" }
+DATA CAPTURE:
+- You MUST identify the COMPANY NAME and the PRIMARY BOTTLENECK before setting ready_for_phase_1: true.
+- Ask exactly ONE specific follow-up question per turn to keep the momentum.
+
+JSON OUTPUT:
+Every response must end with this exact block if the conversation is progressing:
+JSON_DATA: { "score": 0-10, "bottleneck": "string", "ready_for_phase_1": boolean, "company": "string" }
 `;
 
 export const handler = async (event: any) => {
@@ -28,7 +31,7 @@ export const handler = async (event: any) => {
   if (!apiKey) {
     return { 
       statusCode: 500, 
-      body: JSON.stringify({ error: "Intelligence Link Offline: API_KEY not configured in environment." }) 
+      body: JSON.stringify({ error: "Intelligence Link Offline: API_KEY not configured." }) 
     };
   }
 
@@ -46,7 +49,7 @@ export const handler = async (event: any) => {
       contents: formattedHistory,
       config: {
         systemInstruction: STRATEGIST_SYSTEM_INSTRUCTION,
-        temperature: 0.7,
+        temperature: 0.6, // Lower temperature for more consistent JSON and conciseness
       }
     });
 
@@ -56,11 +59,15 @@ export const handler = async (event: any) => {
     let cleanText = fullText;
 
     if (jsonMatch && jsonMatch[1]) {
-      const rawJson = JSON.parse(jsonMatch[1]);
-      const validation = AIResponseSchema.safeParse(rawJson);
-      if (validation.success) {
-        extractedData = validation.data;
-        cleanText = fullText.replace(/JSON_DATA:\s*{.*}/s, '').trim();
+      try {
+        const rawJson = JSON.parse(jsonMatch[1]);
+        const validation = AIResponseSchema.safeParse(rawJson);
+        if (validation.success) {
+          extractedData = validation.data;
+          cleanText = fullText.replace(/JSON_DATA:\s*{.*}/s, '').trim();
+        }
+      } catch (e) {
+        console.error("JSON Parse Error", e);
       }
     }
 

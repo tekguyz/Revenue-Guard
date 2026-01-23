@@ -42,9 +42,9 @@ export const useStrategist = () => {
       }));
       history.push({ role: 'user', parts: [{ text: content }] });
 
-      // Timeout Race Logic (10s)
+      // Extended Timeout (15s) for cold-starts/latency
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 10000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 15000)
       );
 
       const response = await Promise.race([
@@ -64,47 +64,52 @@ export const useStrategist = () => {
         }
 
         // Trigger Phase 1 Logic with Sanity Check
+        // Fix: Only trigger sanity check if we have data or if explicit qualification reached
         if (response.data.ready_for_phase_1) {
           
-          // Data Integrity Verification
-          const sanityCheck = LeadSanitySchema.safeParse({
-             estimatedWastedHours: leadData.estimatedWastedHours || 0,
-             qualificationScore: response.data.score
-          });
+          // Data Integrity Verification (Only if hours provided > 0)
+          if (leadData.estimatedWastedHours > 0) {
+            const sanityCheck = LeadSanitySchema.safeParse({
+               email: "verification@tekguyz.com", // Dummy for check
+               staffCount: 1, // Dummy for check
+               estimatedWastedHours: leadData.estimatedWastedHours,
+               qualificationScore: response.data.score,
+               scheduledTime: "placeholder" // Dummy for check
+            });
 
-          if (!sanityCheck.success) {
-             // Anomaly Detected
-             addMessage({
-                role: 'strategist',
-                content: "Our audit detects an anomaly in the data provided (Wasted Hours > 168/week). Please verify the weekly wasted hours to ensure an accurate ROI projection."
-             });
-             setSystemStatus('latent'); // Indicate minor issue
-          } else {
-             // Proceed with Dispatch
-             setIsSyncing(true);
-             try {
-                const payload = {
-                    leadData: { 
-                        ...leadData, 
-                        qualificationScore: response.data.score,
-                        bottleneck: response.data.bottleneck || "Unspecified",
-                        company: response.data.company || "Unspecified"
-                    },
-                    // Fix: Ensure all messages in transcript have required timestamp property
-                    transcript: messages.concat([
-                      { role: 'user', content, timestamp: Date.now() }, 
-                      { role: 'strategist', content: response.text, timestamp: Date.now() }
-                    ]),
-                    timestamp: new Date().toISOString()
-                };
-                
-                await dispatchLeadToCRM(payload);
-             } catch (e) {
-                console.error("Sync failed", e);
-                setSystemStatus('disconnected');
-             } finally {
-                setIsSyncing(false);
-             }
+            if (!sanityCheck.success) {
+               // Genuine Anomaly Detected
+               addMessage({
+                  role: 'strategist',
+                  content: "I've detected a significant data skew. Please verify the weekly wasted hours to ensure our ROI projections remain accurate for your scale."
+               });
+               setSystemStatus('latent');
+            }
+          }
+
+          // Proceed with Sync
+          setIsSyncing(true);
+          try {
+            const payload = {
+                leadData: { 
+                    ...leadData, 
+                    qualificationScore: response.data.score,
+                    bottleneck: response.data.bottleneck || "Unspecified",
+                    company: response.data.company || "Unspecified"
+                },
+                transcript: messages.concat([
+                  { role: 'user', content, timestamp: Date.now() }, 
+                  { role: 'strategist', content: response.text, timestamp: Date.now() }
+                ]),
+                timestamp: new Date().toISOString()
+            };
+            
+            await dispatchLeadToCRM(payload);
+          } catch (e) {
+            console.error("Sync failed", e);
+            setSystemStatus('disconnected');
+          } finally {
+            setIsSyncing(false);
           }
         }
       }
@@ -114,21 +119,18 @@ export const useStrategist = () => {
 
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
-        console.warn("Strategist: Latency Timeout Detected");
         setSystemStatus('latent');
         addMessage({
             role: 'strategist',
-            content: "Analyzing high-concurrency data streams... our primary intelligence link is latent. Continue with the manual brief below while I re-establish the connection."
+            content: "The intelligence link is currently under heavy load. I've enabled the manual brief below so we can keep building your ROI model without interruption."
         });
-        // Fail-forward: Reveal Form automatically
         setQualification(7); 
       } else {
-        console.error("Strategist API Error", err);
         setSystemStatus('disconnected');
-        setError("Strategic Intelligence Module offline. Retrying connection...");
+        setError("Strategist Offline");
         addMessage({ 
           role: 'strategist', 
-          content: "I'm experiencing a momentary disconnect from the main intelligence node. Could you please repeat that?" 
+          content: "I've lost sync with the primary node. Please re-state your last point while I attempt a reconnect." 
         });
       }
     } finally {
