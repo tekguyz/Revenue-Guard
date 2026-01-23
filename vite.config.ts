@@ -12,7 +12,8 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
           'vendor-utils': ['lucide-react', 'zustand', 'zod', '@tanstack/react-query'],
-          'vendor-ai': ['@google/genai'],
+          // Note: @google/genai is now handled server-side in Netlify functions, 
+          // removing it from the client bundle entirely for maximum performance.
         },
       },
     },

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Key, ExternalLink, Cpu } from 'lucide-react';
 import { Button } from './Button';
@@ -7,20 +8,18 @@ interface ApiKeyGuardProps {
   children: React.ReactNode;
 }
 
+// Fixed: Properly augment global scope by defining the AIStudio interface 
+// and using the name the compiler expects for the window.aistudio property.
 declare global {
-  /**
-   * AIStudio Interface
-   * Defined to match the ambient type expected by the environment.
-   */
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
     openSelectKey: () => Promise<void>;
   }
 
   interface Window {
-    // Fixed: Aligned with environment-provided AIStudio type to resolve declaration conflicts.
-    // This property is already declared as 'AIStudio' in the global scope.
-    aistudio: AIStudio;
+    // Modified to be optional (?) to match existing declarations in the environment 
+    // and resolve the "All declarations of 'aistudio' must have identical modifiers" error.
+    aistudio?: AIStudio;
   }
 }
 
@@ -29,13 +28,25 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
 
   useEffect(() => {
     const checkKey = async () => {
-      // Check if we are in an environment that supports selection
+      // Priority 1: Check standard env var (usually provided by runtime injection)
+      const currentKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
+      if (currentKey) {
+        setHasKey(true);
+        return;
+      }
+
+      // Priority 2: Check for AI Studio environment bridge
       if (window.aistudio) {
-        const selected = await window.aistudio.hasSelectedApiKey();
-        setHasKey(selected);
+        try {
+          const selected = await window.aistudio.hasSelectedApiKey();
+          setHasKey(selected);
+        } catch (e) {
+          console.error("ApiKeyGuard: selection check failed", e);
+          setHasKey(false);
+        }
       } else {
-        // Fallback for standard environments using process.env.API_KEY
-        setHasKey(!!process.env.API_KEY);
+        // No bridge and no env var = fail
+        setHasKey(false);
       }
     };
     checkKey();
@@ -43,13 +54,18 @@ export const ApiKeyGuard: React.FC<ApiKeyGuardProps> = ({ children }) => {
 
   const handleAuthorize = async () => {
     if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-      // Per instructions, assume success after triggering dialog to avoid race conditions
-      setHasKey(true);
+      try {
+        await window.aistudio.openSelectKey();
+        // Mandatory: Assume success to bypass race conditions where hasSelectedApiKey() 
+        // doesn't update immediately after the dialog closes.
+        setHasKey(true);
+      } catch (e) {
+        console.error("ApiKeyGuard: authorization failed", e);
+      }
     }
   };
 
-  if (hasKey === null) return null; // Initializing check
+  if (hasKey === null) return null; // Initializing state
 
   if (!hasKey) {
     return (

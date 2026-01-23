@@ -6,7 +6,6 @@ import { AssessmentView } from './features/assessment/AssessmentView';
 import { DashboardView } from './features/dashboard/DashboardView';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { SystemRestoredNotification } from './components/ui/SystemRestoredNotification';
-import { ApiKeyGuard } from './components/ui/ApiKeyGuard';
 
 const App: React.FC = () => {
   const { currentView } = useUIStore();
@@ -26,12 +25,10 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <ApiKeyGuard>
-        <SystemRestoredNotification />
-        <Layout>
-          {renderView()}
-        </Layout>
-      </ApiKeyGuard>
+      <SystemRestoredNotification />
+      <Layout>
+        {renderView()}
+      </Layout>
     </ErrorBoundary>
   );
 };
