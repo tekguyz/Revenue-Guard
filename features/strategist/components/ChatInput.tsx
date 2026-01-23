@@ -67,7 +67,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           placeholder="Describe your current workflow challenge..."
           disabled={isLoading || isSyncing}
           className="w-full bg-transparent border-none focus:ring-0 px-4 py-4 text-light-text dark:text-dark-text placeholder-light-muted dark:placeholder-dark-muted font-medium disabled:opacity-50 text-base"
-          autoFocus
           aria-label="Type your message"
         />
         <div className="pr-2">

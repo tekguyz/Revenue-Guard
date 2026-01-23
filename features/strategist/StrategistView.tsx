@@ -41,7 +41,7 @@ export const StrategistView: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="max-w-7xl mx-auto h-[calc(100vh-8rem)] flex gap-6 opacity-0 transition-all duration-500 relative">
+    <div ref={containerRef} className="max-w-7xl mx-auto h-full flex gap-6 opacity-0 transition-all duration-500 relative">
       
       {/* Loading Progress Bar */}
       {isLoading && (
@@ -52,7 +52,7 @@ export const StrategistView: React.FC = () => {
 
       {/* Left Column: Chat Interface */}
       <section 
-        className={`flex flex-col transition-all duration-500 ease-in-out ${showForm ? 'w-full lg:w-1/2' : 'w-full max-w-4xl mx-auto'}`}
+        className={`flex flex-col h-full transition-all duration-500 ease-in-out ${showForm ? 'w-full lg:w-1/2' : 'w-full max-w-4xl mx-auto'}`}
         aria-label="Chat Interface"
       >
           <ChatHeader isLoading={isLoading} qualificationScore={qualificationScore} />
@@ -100,7 +100,7 @@ export const StrategistView: React.FC = () => {
       {/* Right Column: Strategic Brief Form (Revealed when Qualified) */}
       {showForm && (
         <section 
-          className="hidden lg:block lg:w-1/2 animate-in slide-in-from-right duration-700 fade-in fill-mode-forwards"
+          className="hidden lg:block lg:w-1/2 h-full animate-in slide-in-from-right duration-700 fade-in fill-mode-forwards"
           aria-label="Strategic Brief Form Desktop"
         >
           <StrategicBriefForm />

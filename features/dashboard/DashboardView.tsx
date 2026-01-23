@@ -28,7 +28,7 @@ export const DashboardView: React.FC = () => {
     ];
 
   return (
-    <div className="space-y-8 h-[calc(100vh-8rem)] flex flex-col justify-center items-center">
+    <div className="space-y-8 h-full flex flex-col justify-center items-center">
       <div ref={headerRef} className="opacity-0 text-center max-w-2xl">
         <div className="w-16 h-16 bg-light-bg dark:bg-dark-bg rounded-2xl flex items-center justify-center mx-auto mb-6 border border-light-border dark:border-dark-border shadow-inner">
             <Lock className="w-8 h-8 text-light-muted dark:text-dark-muted" />
