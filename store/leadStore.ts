@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { LeadState } from '../types';
+import { ROI_CONSTANTS } from '../schemas/integrity';
 
 interface ExtendedLeadState extends LeadState {
   auditComplete: boolean;
@@ -41,9 +42,13 @@ export const useLeadStore = create<ExtendedLeadState>()(
 
       calculateROI: () => {
         const { staffCount, hoursWasted } = get().brief;
-        const hourlyRate = 65; // Blended corporate rate
+        
+        // REVENUE GUARD: Using centralized constants from schemas/integrity.ts
+        const hourlyRate = ROI_CONSTANTS.HOURLY_RATE_OPS; 
+        const efficiencyMultiplier = ROI_CONSTANTS.EFFICIENCY_FACTOR;
+        
         const annualHours = hoursWasted * staffCount * 52;
-        const savings = annualHours * hourlyRate * 0.70;
+        const savings = annualHours * hourlyRate * efficiencyMultiplier;
         
         set({ calculatedROI: Math.floor(savings) });
       },

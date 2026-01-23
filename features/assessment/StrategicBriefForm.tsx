@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useLeadStore } from '../../store/leadStore';
 import { useUIStore } from '../../store/uiStore';
+// Added missing import for qualificationScore
+import { useInteractionStore } from '../../store/interactionStore';
 import { z } from 'zod';
 import { useTerminalReveal } from '../../components/animations/useTerminalReveal';
 import { TerminalLoader } from '../../components/ui/TerminalLoader';
@@ -10,13 +12,7 @@ import { StepMultiplier } from './components/StepMultiplier';
 import { StepIdentity } from './components/StepIdentity';
 import { FormNavigation } from './components/FormNavigation';
 import { BriefSuccess } from './components/BriefSuccess';
-
-const briefSchema = z.object({
-  email: z.string().email("Invalid email").refine(e => !e.endsWith("@gmail.com") && !e.endsWith("@yahoo.com") && !e.endsWith("@hotmail.com"), "Business email required"),
-  bottlenecks: z.array(z.string()).min(1, "Select at least one bottleneck"),
-  staffCount: z.number().min(1, "Must be at least 1"),
-  hoursWasted: z.number().min(1, "Must be at least 1"),
-});
+import { LeadSanitySchema } from '../../schemas/integrity';
 
 export const StrategicBriefForm: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,8 +26,11 @@ export const StrategicBriefForm: React.FC = () => {
     calculatedROI,
     isSubmitting,
     setSubmitting,
-    setAuditComplete 
+    setAuditComplete,
   } = useLeadStore();
+
+  // Fix: Property 'qualificationScore' correctly accessed from interaction store
+  const { qualificationScore } = useInteractionStore();
   
   const { setView } = useUIStore();
   
@@ -61,7 +60,21 @@ export const StrategicBriefForm: React.FC = () => {
 
   const handleSubmit = async () => {
       try {
-          briefSchema.parse(brief);
+          // REVENUE GUARD: Validation mapped to central Integrity Schema
+          LeadSanitySchema.parse({
+            email: brief.email,
+            staffCount: brief.staffCount,
+            estimatedWastedHours: brief.hoursWasted,
+            qualificationScore: qualificationScore || 0
+          });
+
+          // Secondary check for bottlenecks (not in LeadSanitySchema but required for UX)
+          if (brief.bottlenecks.length === 0) {
+            setErrors({ bottlenecks: "Please select at least one friction point" });
+            setFormStep(1);
+            return;
+          }
+
           setErrors({});
           setSubmitting(true);
           
@@ -74,10 +87,15 @@ export const StrategicBriefForm: React.FC = () => {
       } catch (err) {
           if (err instanceof z.ZodError) {
               const fieldErrors: Record<string, string> = {};
-              err.errors.forEach(e => {
+              // Fix: ZodError uses 'issues' property for iteration
+              err.issues.forEach(e => {
                   if (e.path[0]) fieldErrors[e.path[0].toString()] = e.message;
               });
               setErrors(fieldErrors);
+              
+              // Direct user to the step containing the error
+              if (fieldErrors.email) setFormStep(4);
+              else if (fieldErrors.estimatedWastedHours || fieldErrors.staffCount) setFormStep(3);
           }
       }
   };

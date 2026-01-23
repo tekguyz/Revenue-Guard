@@ -90,7 +90,11 @@ export const useStrategist = () => {
                         bottleneck: response.data.bottleneck || "Unspecified",
                         company: response.data.company || "Unspecified"
                     },
-                    transcript: messages.concat([{ role: 'user', content }, { role: 'strategist', content: response.text, timestamp: Date.now() }]),
+                    // Fix: Ensure all messages in transcript have required timestamp property
+                    transcript: messages.concat([
+                      { role: 'user', content, timestamp: Date.now() }, 
+                      { role: 'strategist', content: response.text, timestamp: Date.now() }
+                    ]),
                     timestamp: new Date().toISOString()
                 };
                 

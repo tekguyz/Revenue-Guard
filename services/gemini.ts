@@ -1,7 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { AIResponseSchema, AIResponse } from '../schemas/api-contract';
 
-// System instruction reused here for retry logic context
 const STRATEGIST_SYSTEM_INSTRUCTION = `
 You are the TEKGUYZ Strategist. You identify 'Manual Work Fatigue.'
 
@@ -33,9 +32,9 @@ export const generateStrategistResponse = async (
   attempt = 1
 ): Promise<ChatResponse> => {
   try {
+    // Correct initialization: Named parameter and process.env.API_KEY reference
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
-    // Convert role 'strategist' to 'model' for API
     const formattedHistory = history.map(h => ({
       role: h.role === 'strategist' ? 'model' : h.role,
       parts: h.parts
@@ -70,7 +69,6 @@ export const generateStrategistResponse = async (
           throw new Error("Invalid JSON Schema");
         }
       } catch (parseError) {
-        // Silent Retry Logic
         if (attempt < 2) {
           console.log("Strategist: Malformed JSON, retrying generation...");
           const repairPrompt = "SYSTEM_ALERT: The previous response had malformed JSON_DATA. Please respond again to the user's last message, ensuring the JSON_DATA block at the end is valid JSON.";
