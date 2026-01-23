@@ -3,6 +3,8 @@ import { useTerminalReveal } from '../../components/animations/useTerminalReveal
 import { useStrategist } from '../../hooks/useStrategist';
 import { StrategicBriefForm } from '../assessment/StrategicBriefForm';
 import { useInteractionStore } from '../../store/interactionStore';
+// Added missing import for UI state management
+import { useUIStore } from '../../store/uiStore';
 import { TerminalLoader } from '../../components/ui/TerminalLoader';
 import { ChatHeader } from './components/ChatHeader';
 import { MessageBubble } from './components/MessageBubble';
@@ -23,6 +25,8 @@ export const StrategistView: React.FC = () => {
   } = useStrategist();
   
   const { isTyping } = useInteractionStore();
+  // Added setView from UI store to handle view transitions
+  const { setView } = useUIStore();
   const showForm = qualificationScore >= 7;
 
   // Initial container reveal
@@ -46,7 +50,7 @@ export const StrategistView: React.FC = () => {
       {/* Loading Progress Bar */}
       {isLoading && (
         <div className="absolute top-0 left-0 w-full h-1 bg-transparent z-10 overflow-hidden">
-          <div className="h-full bg-brand dark:bg-brand-light animate-[shimmer_2s_infinite] w-full origin-left"></div>
+          <div className="h-full bg-brand animate-[shimmer_2s_infinite] w-full origin-left"></div>
         </div>
       )}
 
@@ -59,7 +63,7 @@ export const StrategistView: React.FC = () => {
 
           {/* Chat Area - Scrollable */}
           <div 
-            className="flex-grow min-h-0 overflow-y-auto no-scrollbar space-y-6 p-4 rounded-2xl bg-white/50 dark:bg-dark-card/50 border border-light-border dark:border-dark-border mb-4 shadow-inner relative glass-panel"
+            className="flex-grow min-h-0 overflow-y-auto no-scrollbar space-y-6 p-4 rounded-2xl bg-white/80 border border-light-border mb-4 shadow-inner relative glass-panel"
             role="log"
             aria-live="polite"
           >
@@ -69,10 +73,10 @@ export const StrategistView: React.FC = () => {
             
             {isTyping && (
               <div className="flex justify-start animate-pulse" aria-label="Strategist is typing">
-                <div className="bg-accent dark:bg-accent-light text-white dark:text-black rounded-lg rounded-bl-none px-5 py-4 shadow-md flex gap-1 items-center">
-                    <span className="w-1.5 h-1.5 bg-white/70 dark:bg-black/70 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1.5 h-1.5 bg-white/70 dark:bg-black/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1.5 h-1.5 bg-white/70 dark:bg-black/70 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                <div className="bg-accent text-white rounded-lg rounded-bl-none px-5 py-4 shadow-md flex gap-1 items-center">
+                    <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
               </div>
             )}
@@ -111,13 +115,14 @@ export const StrategistView: React.FC = () => {
       {/* Mobile Overlay for Form */}
       {showForm && (
           <dialog 
-            className="lg:hidden fixed inset-0 z-50 bg-white dark:bg-dark-bg w-full h-full animate-in slide-in-from-bottom duration-500 overflow-y-auto m-0 p-0"
+            className="lg:hidden fixed inset-0 z-50 bg-white w-full h-full animate-in slide-in-from-bottom duration-500 overflow-y-auto m-0 p-0"
             open
             aria-label="Strategic Brief Form Mobile"
           >
               <div className="p-4 h-full flex flex-col">
                   <header className="flex justify-between items-center mb-4 flex-shrink-0">
-                      <h2 className="text-xl font-bold text-light-text dark:text-dark-text">Strategic Brief</h2>
+                      <h2 className="text-xl font-bold text-light-text">Strategic Brief</h2>
+                      <button onClick={() => setView('strategist')} className="p-2 text-brand font-bold uppercase text-xs">Back to Chat</button>
                   </header>
                   <div className="flex-grow min-h-0">
                      <StrategicBriefForm />

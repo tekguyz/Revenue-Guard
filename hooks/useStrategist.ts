@@ -42,7 +42,6 @@ export const useStrategist = () => {
       }));
       history.push({ role: 'user', parts: [{ text: content }] });
 
-      // Extended Timeout (15s) for cold-starts/latency
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('TIMEOUT')), 15000)
       );
@@ -52,7 +51,9 @@ export const useStrategist = () => {
         timeoutPromise
       ]) as Awaited<ReturnType<typeof generateStrategistResponse>>;
 
-      // Process Data
+      // Strategic Fallback: Ensure we never display a blank bubble
+      const finalContent = response.text?.trim() || "I'm processing that information. Can you tell me a bit more about how this specific friction point impacts your team's daily output?";
+
       if (response.data) {
         setQualification(response.data.score);
         
@@ -63,31 +64,25 @@ export const useStrategist = () => {
             updateLeadData({ company: response.data.company });
         }
 
-        // Trigger Phase 1 Logic with Sanity Check
-        // Fix: Only trigger sanity check if we have data or if explicit qualification reached
         if (response.data.ready_for_phase_1) {
-          
-          // Data Integrity Verification (Only if hours provided > 0)
           if (leadData.estimatedWastedHours > 0) {
             const sanityCheck = LeadSanitySchema.safeParse({
-               email: "verification@tekguyz.com", // Dummy for check
-               staffCount: 1, // Dummy for check
+               email: "verification@tekguyz.com",
+               staffCount: 1,
                estimatedWastedHours: leadData.estimatedWastedHours,
                qualificationScore: response.data.score,
-               scheduledTime: "placeholder" // Dummy for check
+               scheduledTime: "placeholder"
             });
 
             if (!sanityCheck.success) {
-               // Genuine Anomaly Detected
                addMessage({
                   role: 'strategist',
-                  content: "I've detected a significant data skew. Please verify the weekly wasted hours to ensure our ROI projections remain accurate for your scale."
+                  content: "I've detected a significant data skew in the reported metrics. Please verify the weekly wasted hours so we can maintain absolute accuracy in your ROI model."
                });
                setSystemStatus('latent');
             }
           }
 
-          // Proceed with Sync
           setIsSyncing(true);
           try {
             const payload = {
@@ -99,7 +94,7 @@ export const useStrategist = () => {
                 },
                 transcript: messages.concat([
                   { role: 'user', content, timestamp: Date.now() }, 
-                  { role: 'strategist', content: response.text, timestamp: Date.now() }
+                  { role: 'strategist', content: finalContent, timestamp: Date.now() }
                 ]),
                 timestamp: new Date().toISOString()
             };
@@ -114,15 +109,14 @@ export const useStrategist = () => {
         }
       }
 
-      // Add AI Message
-      addMessage({ role: 'strategist', content: response.text });
+      addMessage({ role: 'strategist', content: finalContent });
 
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
         setSystemStatus('latent');
         addMessage({
             role: 'strategist',
-            content: "The intelligence link is currently under heavy load. I've enabled the manual brief below so we can keep building your ROI model without interruption."
+            content: "The primary intelligence link is under heavy load. I've enabled the Strategic Brief protocol below so we can continue your ROI mapping without delay."
         });
         setQualification(7); 
       } else {
@@ -130,7 +124,7 @@ export const useStrategist = () => {
         setError("Strategist Offline");
         addMessage({ 
           role: 'strategist', 
-          content: "I've lost sync with the primary node. Please re-state your last point while I attempt a reconnect." 
+          content: "I've lost synchronization with the primary node. Please re-state your last point while I re-initialize the link." 
         });
       }
     } finally {

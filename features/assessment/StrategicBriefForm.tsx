@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { useLeadStore } from '../../store/leadStore';
 import { useUIStore } from '../../store/uiStore';
@@ -43,7 +42,9 @@ export const StrategicBriefForm: React.FC = () => {
 
   useTerminalReveal(containerRef, { delay: 0 });
 
+  // Clear errors when moving between steps to prevent premature validation alerts
   useEffect(() => {
+    setErrors({});
     if (stepRef.current) {
        stepRef.current.animate([
            { opacity: 0, transform: 'translateX(20px)' },
@@ -62,7 +63,12 @@ export const StrategicBriefForm: React.FC = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
+      
+      // Clear previous errors before fresh validation
+      setErrors({});
+      
       try {
+          // 1. Validate against strict B2B schema
           LeadSanitySchema.parse({
             email: brief.email,
             staffCount: brief.staffCount,
@@ -70,13 +76,15 @@ export const StrategicBriefForm: React.FC = () => {
             qualificationScore: qualificationScore || 0,
             scheduledTime: brief.scheduledTime
           });
+
           if (brief.bottlenecks.length === 0) {
             setErrors({ bottlenecks: "Select at least one friction point" });
             setFormStep(1);
             return;
           }
-          setErrors({});
+
           setSubmitting(true);
+          
           const formData = {
             "form-name": "strategic-brief",
             email: brief.email,
@@ -88,12 +96,15 @@ export const StrategicBriefForm: React.FC = () => {
             roiProjection: calculatedROI,
             qualificationScore: qualificationScore
           };
-          await fetch("/", {
+
+          const response = await fetch("/", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: encode(formData)
           });
-          setSubmitting(false);
+
+          if (!response.ok) throw new Error("Netlify Form Dispatch Failed");
+
           setAuditComplete(true);
           setShowSuccess(true);
       } catch (err) {
@@ -103,9 +114,16 @@ export const StrategicBriefForm: React.FC = () => {
                   if (e.path[0]) fieldErrors[e.path[0].toString()] = e.message;
               });
               setErrors(fieldErrors);
+              // Logic to guide user back to the step with errors
               if (fieldErrors.email || fieldErrors.scheduledTime) setFormStep(4);
               else if (fieldErrors.estimatedWastedHours || fieldErrors.staffCount) setFormStep(3);
+          } else {
+              console.error("System Error during Brief Dispatch:", err);
+              setErrors({ global: "The secure vault is temporarily unreachable. Please try initializing again in a moment." });
           }
+      } finally {
+          // CRITICAL: Ensure CTA is re-enabled regardless of result
+          setSubmitting(false);
       }
   };
 
@@ -115,7 +133,7 @@ export const StrategicBriefForm: React.FC = () => {
       return (
           <div className="h-full flex flex-col items-center justify-center p-8 bg-white">
               <TerminalLoader className="w-full max-w-md h-64" />
-              <p className="mt-4 text-xs font-mono text-brand animate-pulse uppercase tracking-widest font-bold">Securing Vault Entry...</p>
+              <p className="mt-4 text-xs font-mono text-brand animate-pulse uppercase tracking-widest font-black">Securing Intelligence Vault...</p>
           </div>
       );
   }
@@ -137,9 +155,14 @@ export const StrategicBriefForm: React.FC = () => {
               <div ref={stepRef}>
                   {formStep === 1 && <StepBottlenecks bottlenecks={brief.bottlenecks} setBottlenecks={(val) => setBriefData({ bottlenecks: val })} error={errors.bottlenecks} />}
                   {formStep === 2 && <StepOutcomes goals={brief.goals} setGoals={(val) => setBriefData({ goals: val })} />}
-                  {formStep === 3 && <StepMultiplier staffCount={brief.staffCount} hoursWasted={brief.hoursWasted} calculatedROI={calculatedROI} setStaffCount={(val) => setBriefData({ staffCount: val })} setHoursWasted={(val) => setBriefData({ hoursWasted: val })} />}
+                  {formStep === 3 && <StepMultiplier staffCount={brief.staffCount} hoursWasted={brief.hoursWasted} calculatedROI={calculatedROI} setStaffCount={(val) => setBriefData({ staffCount: val })} setHoursWasted={(val) => setBriefData({ hoursWasted: val })} error={errors.staffCount || errors.estimatedWastedHours} />}
                   {formStep === 4 && <StepIdentity email={brief.email} setEmail={(val) => setBriefData({ email: val })} scheduledTime={brief.scheduledTime} onSelectTime={(val) => setBriefData({ scheduledTime: val })} error={errors.email || errors.scheduledTime} />}
               </div>
+              {errors.global && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-mono uppercase text-center animate-pulse">
+                  {errors.global}
+                </div>
+              )}
           </div>
           <FormNavigation step={formStep} totalSteps={4} onBack={() => setFormStep(formStep - 1)} onNext={handleNext} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </form>
