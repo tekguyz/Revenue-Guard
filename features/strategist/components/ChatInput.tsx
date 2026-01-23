@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { Sparkles, Send } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
@@ -29,7 +30,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       const animation = element.animate(
         [
           { transform: 'scale(1)', borderColor: 'rgba(53, 0, 211, 0.3)' },
-          { transform: 'scale(1.02)', borderColor: '#3500D3' },
+          { transform: 'scale(1.01)', borderColor: '#3500D3', boxShadow: '0 0 15px rgba(53, 0, 211, 0.1)' },
           { transform: 'scale(1)', borderColor: 'rgba(53, 0, 211, 0.3)' }
         ],
         {
@@ -53,10 +54,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     <section className="relative flex-shrink-0" aria-label="Message Input">
       <div 
         ref={inputBorderRef}
-        className="relative flex items-center bg-white dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl shadow-lg transition-all duration-300 glass-panel"
+        className="relative flex items-center bg-white border border-light-border rounded-2xl shadow-xl transition-all duration-300 glass-panel"
       >
         <div className="pl-4" aria-hidden="true">
-          <Sparkles className={`w-5 h-5 ${qualificationScore >= 7 ? 'text-accent' : 'text-light-muted dark:text-dark-muted'}`} />
+          <Sparkles className={`w-5 h-5 ${qualificationScore >= 7 ? 'text-accent' : 'text-slate-300'}`} />
         </div>
         <input
           ref={inputRef}
@@ -64,9 +65,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Describe your current workflow challenge..."
+          placeholder="Type your workflow challenge..."
           disabled={isLoading || isSyncing}
-          className="w-full bg-transparent border-none focus:ring-0 px-4 py-4 text-light-text dark:text-dark-text placeholder-light-muted dark:placeholder-dark-muted font-medium disabled:opacity-50 text-base"
+          className="w-full bg-transparent border-none focus:ring-0 px-4 py-5 text-light-text placeholder-slate-400 font-semibold disabled:opacity-50 text-base"
           aria-label="Type your message"
         />
         <div className="pr-2">
@@ -74,7 +75,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             size="sm" 
             onClick={onSend} 
             disabled={!inputValue.trim() || isLoading || isSyncing}
-            className={!inputValue.trim() ? 'opacity-50' : ''}
+            className={`${!inputValue.trim() ? 'opacity-30' : ''} rounded-xl`}
             aria-label="Send Message"
           >
             <Send className="w-4 h-4" />

@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { Bot, User } from 'lucide-react';
 import { MessageRole } from '../../../types';
@@ -31,29 +32,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         <div 
           className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
             isStrategist 
-              ? 'bg-accent/10 dark:bg-accent-light/10' 
-              : 'bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border'
+              ? 'bg-brand/10 shadow-sm' 
+              : 'bg-slate-100 border border-slate-200'
           }`}
           aria-hidden="true"
         >
           {isStrategist ? (
-            <Bot className="w-5 h-5 text-accent dark:text-accent-light" />
+            <Bot className="w-5 h-5 text-brand" />
           ) : (
-            <User className="w-5 h-5 text-light-muted dark:text-dark-muted" />
+            <User className="w-5 h-5 text-slate-500" />
           )}
         </div>
 
         {/* Bubble */}
         <div className={`
-          relative px-5 py-4 text-sm leading-relaxed shadow-sm
+          relative px-5 py-4 text-[15px] leading-relaxed shadow-md transition-all
           ${isStrategist 
-            ? 'bg-accent dark:bg-accent-light text-white dark:text-black rounded-lg rounded-bl-none prose prose-invert prose-p:text-white dark:prose-p:text-black prose-headings:text-white dark:prose-headings:text-black prose-strong:text-white dark:prose-strong:text-black prose-code:text-white dark:prose-code:text-black' 
-            : 'bg-white dark:bg-dark-card text-light-text dark:text-dark-text border border-light-border dark:border-dark-border rounded-lg rounded-br-none'}
+            ? 'bg-brand text-white rounded-2xl rounded-bl-none prose prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-code:text-white' 
+            : 'bg-slate-50 text-light-text border border-slate-200 rounded-2xl rounded-br-none'}
         `}>
           {isStrategist ? (
             <MarkdownRenderer content={message.content} />
           ) : (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap font-medium">{message.content}</p>
           )}
         </div>
       </div>

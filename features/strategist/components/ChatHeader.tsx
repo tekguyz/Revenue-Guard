@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bot } from 'lucide-react';
 
@@ -10,22 +11,22 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ isLoading, qualification
   return (
     <header className="flex items-center justify-between mb-4 flex-shrink-0 px-2" aria-label="Strategist Status">
       <div className="flex items-center gap-3">
-        <div className="bg-brand/10 dark:bg-brand-light/10 p-2 rounded-lg" aria-hidden="true">
-          <Bot className="w-6 h-6 text-brand dark:text-brand-light" />
+        <div className="bg-brand/10 p-2 rounded-lg" aria-hidden="true">
+          <Bot className="w-6 h-6 text-brand" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-light-text dark:text-dark-text">TEKGUYZ Strategist</h1>
+          <h1 className="text-lg font-bold text-light-text tracking-tight">TEKGUYZ Strategist</h1>
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-400' : 'bg-green-500'} animate-pulse`} aria-hidden="true"></span>
-            <span className="text-xs text-light-muted dark:text-dark-muted font-mono uppercase" aria-live="polite">
-              {isLoading ? 'Analyzing Pattern...' : 'System Online'}
+            <span className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-500' : 'bg-green-500'} animate-pulse`} aria-hidden="true"></span>
+            <span className="text-[10px] text-light-muted font-mono uppercase font-bold tracking-widest" aria-live="polite">
+              {isLoading ? 'Pattern_Analysis' : 'Protocol_Live'}
             </span>
           </div>
         </div>
       </div>
       {qualificationScore > 0 && (
         <div 
-          className="text-xs font-mono px-3 py-1 rounded border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted"
+          className="text-[10px] font-mono font-bold px-3 py-1 rounded bg-slate-100 border border-slate-200 text-brand"
           role="status"
           aria-label={`Current Lead Qualification Score: ${qualificationScore} out of 10`}
         >

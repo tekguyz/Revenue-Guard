@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -14,14 +15,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              brand: { DEFAULT: '#002366', hover: '#003399', light: '#3B82F6' },
+              brand: { DEFAULT: '#002366', hover: '#001a4d', light: '#3B82F6' },
               accent: { DEFAULT: '#3500D3', hover: '#2a00a8', light: '#8b5cf6' },
-              dark: { bg: '#0A0A0B', card: '#161618', border: '#27272A', text: '#EDEDED', muted: '#A1A1AA' },
-              light: { bg: '#F8FAFC', card: '#FFFFFF', border: '#E2E8F0', text: '#0F172A', muted: '#64748B' }
+              light: { bg: '#F8FAFC', card: '#FFFFFF', border: '#E2E8F0', text: '#0F172A', muted: '#475569' }
             },
             fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
             animation: {
@@ -35,7 +34,7 @@
     </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-      body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+      body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; background-color: #F8FAFC; color: #0F172A; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .glass-panel { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     </style>

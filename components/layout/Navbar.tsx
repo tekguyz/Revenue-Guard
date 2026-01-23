@@ -1,7 +1,7 @@
+
 import React from 'react';
-import { Menu, X, Bot, LayoutDashboard, FileCheck, Activity } from 'lucide-react';
+import { Menu, X, Bot, LayoutDashboard, FileCheck } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
-import { ThemeToggle } from './ThemeToggle';
 import { ViewMode } from '../../types';
 import { RGLogo } from '../ui/RGLogo';
 
@@ -33,7 +33,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="z-50 w-full glass-panel border-b bg-white/70 dark:bg-dark-bg/70 border-light-border dark:border-dark-border transition-colors duration-300 flex-shrink-0">
+    <nav className="z-50 w-full glass-panel border-b bg-white/70 border-light-border transition-colors duration-300 flex-shrink-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
@@ -46,15 +46,15 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
-            <div className="flex space-x-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+            <div className="flex space-x-1 bg-black/5 p-1 rounded-xl">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setView(item.id)}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
                     currentView === item.id
-                      ? 'bg-white dark:bg-dark-card text-brand shadow-sm'
-                      : 'text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text'
+                      ? 'bg-white text-brand shadow-sm'
+                      : 'text-light-muted hover:text-light-text'
                   }`}
                 >
                   {item.icon}
@@ -67,23 +67,20 @@ export const Navbar: React.FC = () => {
           {/* Actions & Health Monitor */}
           <div className="hidden md:flex items-center gap-4">
             {/* System Health Monitor */}
-            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-transparent hover:border-light-border dark:hover:border-dark-border transition-colors">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 border border-transparent hover:border-light-border transition-colors">
               <div className={`w-1.5 h-1.5 rounded-full ${getHealthColor()}`}></div>
-              <span className="text-[9px] font-mono uppercase text-light-muted dark:text-dark-muted tracking-wide">
+              <span className="text-[9px] font-mono uppercase text-light-muted tracking-wide font-bold">
                 {getHealthText()}
               </span>
             </div>
-            
-            <ThemeToggle />
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-4">
              <div className={`w-2 h-2 rounded-full ${getHealthColor()}`}></div>
-            <ThemeToggle />
             <button
               onClick={() => setNavOpen(!isNavOpen)}
-              className="p-1.5 rounded-md text-light-muted dark:text-dark-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-md text-light-muted hover:bg-black/5 transition-colors"
             >
               {isNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -93,16 +90,16 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isNavOpen && (
-        <div className="md:hidden border-t border-light-border dark:border-dark-border bg-white dark:bg-dark-bg absolute w-full shadow-2xl">
+        <div className="md:hidden border-t border-light-border bg-white absolute w-full shadow-2xl">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setView(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-md text-base font-medium ${
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-md text-base font-bold ${
                   currentView === item.id
                     ? 'bg-brand/10 text-brand'
-                    : 'text-light-muted dark:text-dark-muted hover:bg-black/5 dark:hover:bg-white/5'
+                    : 'text-light-muted hover:bg-black/5'
                 }`}
               >
                 {item.icon}
