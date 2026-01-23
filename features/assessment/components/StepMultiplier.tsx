@@ -1,5 +1,6 @@
 import React from 'react';
 import { ROICounter } from '../../../components/ui/ROICounter';
+import { Users, Timer, ArrowRight, Zap } from 'lucide-react';
 
 interface StepMultiplierProps {
   staffCount: number;
@@ -16,44 +17,84 @@ export const StepMultiplier: React.FC<StepMultiplierProps> = ({
   setStaffCount, 
   setHoursWasted 
 }) => {
+  const totalWeeklyWasted = staffCount * hoursWasted;
+  
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-2xl font-bold text-light-text dark:text-dark-text">The Multiplier</h2>
-        <p className="text-light-muted dark:text-dark-muted">Calculate the potential impact of automation across your team.</p>
+        <div className="flex items-center gap-2 mb-1">
+            <Zap className="w-5 h-5 text-yellow-500" />
+            <h2 className="text-2xl font-bold text-light-text dark:text-dark-text">Scale Metrics</h2>
+        </div>
+        <p className="text-light-muted dark:text-dark-muted">Quantify the friction. We'll handle the projections.</p>
       </header>
       
-      <div className="grid gap-6">
-        <div>
-          <label htmlFor="staffCount" className="block text-sm font-medium mb-2 text-light-text dark:text-dark-text">Current Staff Count</label>
-          <input 
-            id="staffCount"
-            type="number" 
-            className="w-full p-3 rounded-xl bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand text-light-text dark:text-dark-text text-base"
-            value={staffCount || ''}
-            onChange={(e) => setStaffCount(parseInt(e.target.value) || 0)}
-          />
+      <div className="grid gap-4">
+        <div className="group">
+          <label htmlFor="staffCount" className="flex items-center gap-2 text-sm font-medium mb-2 text-light-text dark:text-dark-text">
+            <Users className="w-4 h-4 text-brand" />
+            Impacted Team Size
+          </label>
+          <div className="relative">
+            <input 
+              id="staffCount"
+              type="number" 
+              className="w-full p-4 rounded-xl bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand text-light-text dark:text-dark-text text-lg font-bold"
+              placeholder="0"
+              value={staffCount || ''}
+              onChange={(e) => setStaffCount(parseInt(e.target.value) || 0)}
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-light-muted dark:text-dark-muted uppercase">Staff</span>
+          </div>
         </div>
-        <div>
-          <label htmlFor="hoursWasted" className="block text-sm font-medium mb-2 text-light-text dark:text-dark-text">Hours Wasted Per Week (Avg)</label>
-          <input 
-            id="hoursWasted"
-            type="number" 
-            className="w-full p-3 rounded-xl bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand text-light-text dark:text-dark-text text-base"
-            value={hoursWasted || ''}
-            onChange={(e) => setHoursWasted(parseInt(e.target.value) || 0)}
-          />
+
+        <div className="group">
+          <label htmlFor="hoursWasted" className="flex items-center gap-2 text-sm font-medium mb-2 text-light-text dark:text-dark-text">
+            <Timer className="w-4 h-4 text-brand" />
+            Avg. Weekly Hours Wasted <span className="text-accent font-bold">(Per Person)</span>
+          </label>
+          <div className="relative">
+            <input 
+              id="hoursWasted"
+              type="number" 
+              className="w-full p-4 rounded-xl bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border focus:ring-2 focus:ring-brand text-light-text dark:text-dark-text text-lg font-bold"
+              placeholder="0"
+              value={hoursWasted || ''}
+              onChange={(e) => setHoursWasted(parseInt(e.target.value) || 0)}
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-light-muted dark:text-dark-muted uppercase">Hrs/Wk</span>
+          </div>
+          <p className="mt-2 text-[10px] text-light-muted dark:text-dark-muted leading-tight">
+            Think manual data entry, unnecessary meetings, or cleaning broken reports.
+          </p>
         </div>
       </div>
 
+      {/* Live Math Visual Breakdown */}
+      {(staffCount > 0 && hoursWasted > 0) && (
+        <div className="p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-dashed border-light-border dark:border-dark-border flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-mono text-light-muted dark:text-dark-muted">Combined Team Impact</span>
+                <span className="text-sm font-bold">{totalWeeklyWasted.toLocaleString()} hrs / week wasted</span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-light-muted opacity-30" />
+            <div className="flex flex-col text-right">
+                <span className="text-[10px] uppercase font-mono text-light-muted dark:text-dark-muted">Annual Leakage</span>
+                <span className="text-sm font-bold">{(totalWeeklyWasted * 52).toLocaleString()} hrs / year</span>
+            </div>
+        </div>
+      )}
+
       {/* Live ROI Counter */}
-      <div className="mt-8 p-6 bg-accent/5 dark:bg-accent-light/10 rounded-2xl border border-accent/20 dark:border-accent-light/20 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent dark:via-accent-light to-transparent opacity-50"></div>
-        <p className="text-sm uppercase tracking-wide text-accent dark:text-accent-light font-bold mb-1">Projected Annual Savings</p>
+      <div className="mt-8 p-6 bg-accent/5 dark:bg-accent-light/10 rounded-2xl border border-accent/20 dark:border-accent-light/20 text-center relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent dark:via-accent-light to-transparent opacity-50 group-hover:scale-x-110 transition-transform"></div>
+        <p className="text-xs uppercase tracking-widest text-accent dark:text-accent-light font-bold mb-1">Projected Annual Recovery</p>
         <div className="py-2">
           <ROICounter value={calculatedROI} />
         </div>
-        <p className="text-xs text-light-muted dark:text-dark-muted mt-2 opacity-70">*Based on TEKGUYZ efficiency models</p>
+        <p className="text-[10px] text-light-muted dark:text-dark-muted mt-2 opacity-70">
+          Calculated at standard corporate blended rate ($65/hr).
+        </p>
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ export interface BriefFormData {
   staffCount: number;
   hoursWasted: number;
   email: string;
+  scheduledTime?: string;
 }
 
 export interface LeadState {
