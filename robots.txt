@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*?JSON_DATA=
+
+Sitemap: https://tekguyz.com/sitemap.xml
