@@ -11,14 +11,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { theme } = useUIStore();
 
   return (
-    <div className={`${theme} h-screen flex flex-col overflow-hidden`}>
-      <div className="flex-grow flex flex-col bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text transition-colors duration-300">
-        <Navbar />
-        <main className="flex-grow overflow-hidden relative container mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          {children}
-        </main>
-        <Footer />
-      </div>
+    <div className={`${theme} fixed inset-0 flex flex-col bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text transition-colors duration-300 overflow-hidden`}>
+      <Navbar />
+      <main className="flex-grow min-h-0 relative container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {children}
+      </main>
+      <Footer />
     </div>
   );
 };

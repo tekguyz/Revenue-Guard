@@ -41,25 +41,25 @@ export const StrategistView: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="max-w-7xl mx-auto h-full flex gap-6 opacity-0 transition-all duration-500 relative">
+    <div ref={containerRef} className="max-w-7xl mx-auto h-full flex gap-6 opacity-0 transition-all duration-500 relative py-4">
       
       {/* Loading Progress Bar */}
       {isLoading && (
-        <div className="absolute top-0 left-0 w-full h-1 bg-transparent z-10 overflow-hidden rounded-t-lg">
+        <div className="absolute top-0 left-0 w-full h-1 bg-transparent z-10 overflow-hidden">
           <div className="h-full bg-brand dark:bg-brand-light animate-[shimmer_2s_infinite] w-full origin-left"></div>
         </div>
       )}
 
       {/* Left Column: Chat Interface */}
       <section 
-        className={`flex flex-col h-full transition-all duration-500 ease-in-out ${showForm ? 'w-full lg:w-1/2' : 'w-full max-w-4xl mx-auto'}`}
+        className={`flex flex-col h-full min-h-0 transition-all duration-500 ease-in-out ${showForm ? 'w-full lg:w-1/2' : 'w-full max-w-4xl mx-auto'}`}
         aria-label="Chat Interface"
       >
           <ChatHeader isLoading={isLoading} qualificationScore={qualificationScore} />
 
-          {/* Chat Area */}
+          {/* Chat Area - Scrollable */}
           <div 
-            className="flex-grow overflow-y-auto no-scrollbar space-y-6 p-4 rounded-2xl bg-white/50 dark:bg-dark-card/50 border border-light-border dark:border-dark-border mb-4 shadow-inner relative glass-panel"
+            className="flex-grow min-h-0 overflow-y-auto no-scrollbar space-y-6 p-4 rounded-2xl bg-white/50 dark:bg-dark-card/50 border border-light-border dark:border-dark-border mb-4 shadow-inner relative glass-panel"
             role="log"
             aria-live="polite"
           >
@@ -87,6 +87,7 @@ export const StrategistView: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Chat Input - Pinned */}
           <ChatInput 
             inputValue={inputValue}
             setInputValue={setInputValue}
@@ -100,7 +101,7 @@ export const StrategistView: React.FC = () => {
       {/* Right Column: Strategic Brief Form (Revealed when Qualified) */}
       {showForm && (
         <section 
-          className="hidden lg:block lg:w-1/2 h-full animate-in slide-in-from-right duration-700 fade-in fill-mode-forwards"
+          className="hidden lg:block lg:w-1/2 h-full min-h-0 animate-in slide-in-from-right duration-700 fade-in fill-mode-forwards"
           aria-label="Strategic Brief Form Desktop"
         >
           <StrategicBriefForm />
@@ -117,9 +118,8 @@ export const StrategistView: React.FC = () => {
               <div className="p-4 h-full flex flex-col">
                   <header className="flex justify-between items-center mb-4 flex-shrink-0">
                       <h2 className="text-xl font-bold text-light-text dark:text-dark-text">Strategic Brief</h2>
-                      {/* Note: In a real app we might want a minimize button, but for this flow it forces completion */}
                   </header>
-                  <div className="flex-grow">
+                  <div className="flex-grow min-h-0">
                      <StrategicBriefForm />
                   </div>
               </div>

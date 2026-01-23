@@ -33,15 +33,15 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full glass-panel border-b bg-white/70 dark:bg-dark-bg/70 border-light-border dark:border-dark-border transition-colors duration-300">
+    <nav className="z-50 w-full glass-panel border-b bg-white/70 dark:bg-dark-bg/70 border-light-border dark:border-dark-border transition-colors duration-300 flex-shrink-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <div 
             className="flex-shrink-0 flex items-center cursor-pointer group" 
             onClick={() => setView('strategist')}
           >
-            <RGLogo showText size={32} />
+            <RGLogo showText size={28} />
           </div>
 
           {/* Desktop Nav */}
@@ -51,7 +51,7 @@ export const Navbar: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setView(item.id)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                     currentView === item.id
                       ? 'bg-white dark:bg-dark-card text-brand shadow-sm'
                       : 'text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text'
@@ -65,12 +65,11 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Actions & Health Monitor */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
             {/* System Health Monitor */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-transparent hover:border-light-border dark:hover:border-dark-border transition-colors">
-              <Activity className="w-3.5 h-3.5 text-light-muted dark:text-dark-muted" />
-              <div className={`w-2 h-2 rounded-full ${getHealthColor()}`}></div>
-              <span className="text-xs font-mono uppercase text-light-muted dark:text-dark-muted tracking-wide">
+            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-transparent hover:border-light-border dark:hover:border-dark-border transition-colors">
+              <div className={`w-1.5 h-1.5 rounded-full ${getHealthColor()}`}></div>
+              <span className="text-[9px] font-mono uppercase text-light-muted dark:text-dark-muted tracking-wide">
                 {getHealthText()}
               </span>
             </div>
@@ -84,9 +83,9 @@ export const Navbar: React.FC = () => {
             <ThemeToggle />
             <button
               onClick={() => setNavOpen(!isNavOpen)}
-              className="p-2 rounded-md text-light-muted dark:text-dark-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-md text-light-muted dark:text-dark-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
-              {isNavOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -94,7 +93,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isNavOpen && (
-        <div className="md:hidden border-t border-light-border dark:border-dark-border bg-white dark:bg-dark-bg">
+        <div className="md:hidden border-t border-light-border dark:border-dark-border bg-white dark:bg-dark-bg absolute w-full shadow-2xl">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
               <button
