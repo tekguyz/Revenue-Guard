@@ -3,13 +3,18 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  define: {
-    // This allows the use of process.env.API_KEY in the browser code
-    // Vite will replace this at build time with the value from the environment
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
-  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-utils': ['lucide-react', 'zustand', 'zod', '@tanstack/react-query'],
+          'vendor-ai': ['@google/genai'],
+        },
+      },
+    },
   }
 });
