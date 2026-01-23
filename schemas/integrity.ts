@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 /**
@@ -9,7 +10,8 @@ export const ROI_CONSTANTS = {
   EFFICIENCY_FACTOR: 0.70 
 } as const;
 
-const BUSINESS_EMAIL_REGEX = /^(?!(.*(gmail|yahoo|hotmail|outlook|icloud|aol|protonmail|mail|zoho)))([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/i;
+// UPDATED: More precise B2B filtering that targets only the domain portion
+const BUSINESS_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?!((gmail|yahoo|hotmail|outlook|icloud|aol|protonmail|zoho|mail|yandex|gmx)\.))([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/i;
 
 export const LeadSanitySchema = z.object({
   email: z.string()

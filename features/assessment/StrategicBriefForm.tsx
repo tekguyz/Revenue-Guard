@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { useLeadStore } from '../../store/leadStore';
 import { useUIStore } from '../../store/uiStore';
@@ -64,12 +65,12 @@ export const StrategicBriefForm: React.FC = () => {
   const handleSubmit = async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
       
-      // Clear previous errors before fresh validation
+      // Reset local error state immediately on attempt
       setErrors({});
       
       try {
-          // 1. Validate against strict B2B schema
-          LeadSanitySchema.parse({
+          // 1. Validate against strict B2B schema BEFORE setting submitting state
+          const validationResult = LeadSanitySchema.safeParse({
             email: brief.email,
             staffCount: brief.staffCount,
             estimatedWastedHours: brief.hoursWasted,
@@ -77,12 +78,22 @@ export const StrategicBriefForm: React.FC = () => {
             scheduledTime: brief.scheduledTime
           });
 
+          if (!validationResult.success) {
+            const fieldErrors: Record<string, string> = {};
+            validationResult.error.issues.forEach(issue => {
+              if (issue.path[0]) fieldErrors[issue.path[0].toString()] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return; // Stop here, button stays active
+          }
+
           if (brief.bottlenecks.length === 0) {
             setErrors({ bottlenecks: "Select at least one friction point" });
             setFormStep(1);
             return;
           }
 
+          // 2. All checks passed, enter submission state
           setSubmitting(true);
           
           const formData = {
@@ -108,19 +119,8 @@ export const StrategicBriefForm: React.FC = () => {
           setAuditComplete(true);
           setShowSuccess(true);
       } catch (err) {
-          if (err instanceof z.ZodError) {
-              const fieldErrors: Record<string, string> = {};
-              err.issues.forEach(e => {
-                  if (e.path[0]) fieldErrors[e.path[0].toString()] = e.message;
-              });
-              setErrors(fieldErrors);
-              // Logic to guide user back to the step with errors
-              if (fieldErrors.email || fieldErrors.scheduledTime) setFormStep(4);
-              else if (fieldErrors.estimatedWastedHours || fieldErrors.staffCount) setFormStep(3);
-          } else {
-              console.error("System Error during Brief Dispatch:", err);
-              setErrors({ global: "The secure vault is temporarily unreachable. Please try initializing again in a moment." });
-          }
+          console.error("System Error during Brief Dispatch:", err);
+          setErrors({ global: "Intelligence link disrupted. Re-initializing secure link..." });
       } finally {
           // CRITICAL: Ensure CTA is re-enabled regardless of result
           setSubmitting(false);
@@ -164,7 +164,15 @@ export const StrategicBriefForm: React.FC = () => {
                 </div>
               )}
           </div>
-          <FormNavigation step={formStep} totalSteps={4} onBack={() => setFormStep(formStep - 1)} onNext={handleNext} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          {/* Note: FormNavigation handles the internal button click logic */}
+          <FormNavigation 
+            step={formStep} 
+            totalSteps={4} 
+            onBack={() => setFormStep(formStep - 1)} 
+            onNext={handleNext} 
+            onSubmit={handleSubmit} 
+            isSubmitting={isSubmitting} 
+          />
         </form>
     </article>
   );

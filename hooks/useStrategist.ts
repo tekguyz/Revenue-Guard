@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useInteractionStore } from '../store/interactionStore';
 import { useUIStore } from '../store/uiStore';
@@ -17,7 +18,7 @@ export const useStrategist = () => {
     qualificationScore
   } = useInteractionStore();
 
-  const { calculateROI } = useLeadStore();
+  const { brief } = useLeadStore();
   const { setSystemStatus } = useUIStore();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +33,6 @@ export const useStrategist = () => {
     setTyping(true);
     setSystemStatus('optimal');
 
-    // Add user message
     addMessage({ role: 'user', content });
 
     try {
@@ -51,7 +51,6 @@ export const useStrategist = () => {
         timeoutPromise
       ]) as Awaited<ReturnType<typeof generateStrategistResponse>>;
 
-      // Strategic Fallback: Ensure we never display a blank bubble
       const finalContent = response.text?.trim() || "I'm processing that information. Can you tell me a bit more about how this specific friction point impacts your team's daily output?";
 
       if (response.data) {
@@ -65,22 +64,18 @@ export const useStrategist = () => {
         }
 
         if (response.data.ready_for_phase_1) {
-          if (leadData.estimatedWastedHours > 0) {
-            const sanityCheck = LeadSanitySchema.safeParse({
-               email: "verification@tekguyz.com",
-               staffCount: 1,
-               estimatedWastedHours: leadData.estimatedWastedHours,
+          // Perform soft sanity check for background sync
+          const backgroundSanity = LeadSanitySchema.safeParse({
+               email: brief.email || "verification@tekguyz.com",
+               staffCount: brief.staffCount || 1,
+               estimatedWastedHours: leadData.estimatedWastedHours || 1,
                qualificationScore: response.data.score,
-               scheduledTime: "placeholder"
-            });
+               scheduledTime: "background_sync"
+          });
 
-            if (!sanityCheck.success) {
-               addMessage({
-                  role: 'strategist',
-                  content: "I've detected a significant data skew in the reported metrics. Please verify the weekly wasted hours so we can maintain absolute accuracy in your ROI model."
-               });
-               setSystemStatus('latent');
-            }
+          if (!backgroundSanity.success) {
+            console.debug("Background Lead Check: Pending deeper data capture.");
+            setSystemStatus('latent');
           }
 
           setIsSyncing(true);
@@ -101,7 +96,7 @@ export const useStrategist = () => {
             
             await dispatchLeadToCRM(payload);
           } catch (e) {
-            console.error("Sync failed", e);
+            console.error("Background Sync failed", e);
             setSystemStatus('disconnected');
           } finally {
             setIsSyncing(false);
