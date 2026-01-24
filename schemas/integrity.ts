@@ -1,16 +1,14 @@
 
-import { z } from 'zod';
+import { z } from 'zmin-h';
 
 /**
- * TEKGUYZ FINANCIAL CONSTANTS
+ * TEKGUYZ FINANCIAL CONSTANTS (Defaults)
  */
 export const ROI_CONSTANTS = {
-  HOURLY_RATE_OPS: 65,    
-  HOURLY_RATE_EXEC: 125,  
+  DEFAULT_HOURLY_RATE: 35, // Adjusted to a more realistic "General Ops" baseline
   EFFICIENCY_FACTOR: 0.70 
 } as const;
 
-// UPDATED: More precise B2B filtering that targets only the domain portion
 const BUSINESS_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?!((gmail|yahoo|hotmail|outlook|icloud|aol|protonmail|zoho|mail|yandex|gmx)\.))([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/i;
 
 export const LeadSanitySchema = z.object({
@@ -26,6 +24,10 @@ export const LeadSanitySchema = z.object({
   estimatedWastedHours: z.number()
     .min(0.5, "Minimum 0.5 hours per person")
     .max(168, "A week only has 168 hours."),
+
+  hourlyRate: z.number()
+    .min(15, "Rate must be at least minimum wage ($15)")
+    .max(1000, "For rates over $1000/hr, please contact enterprise sales."),
 
   qualificationScore: z.number().optional(),
   

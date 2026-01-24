@@ -1,11 +1,15 @@
+
 import React from 'react';
 import { TimeRecoveryChart } from '../../../components/ui/TimeRecoveryChart';
+import { useLeadStore } from '../../../store/leadStore';
 
 interface RecoveryTrajectoryProps {
   monthlySavings: number;
 }
 
 export const RecoveryTrajectory: React.FC<RecoveryTrajectoryProps> = ({ monthlySavings }) => {
+  const { brief } = useLeadStore();
+  
   return (
     <section className="bg-white dark:bg-dark-card rounded-2xl border border-light-border dark:border-dark-border shadow-lg p-8 relative overflow-hidden" aria-label="Recovery Trajectory Chart">
       <div className="flex justify-between items-end mb-8">
@@ -43,8 +47,8 @@ export const RecoveryTrajectory: React.FC<RecoveryTrajectoryProps> = ({ monthlyS
         </div>
         <div className="col-span-2 flex items-center justify-end">
           <div className="text-right">
-            <div className="text-xs text-light-muted dark:text-dark-muted">Your Projected Efficiency Gain</div>
-            <div className="text-xl font-bold text-brand dark:text-brand-light">~85% <span className="text-sm font-normal text-light-muted dark:text-dark-muted">Conservative Est.</span></div>
+            <div className="text-xs text-light-muted dark:text-dark-muted">Projected Efficiency Gain</div>
+            <div className="text-xl font-bold text-brand dark:text-brand-light">~85% <span className="text-[10px] block font-normal text-light-muted dark:text-dark-muted">Modelled at ${brief.hourlyRate}/hr</span></div>
           </div>
         </div>
       </div>

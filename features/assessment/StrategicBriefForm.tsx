@@ -43,7 +43,6 @@ export const StrategicBriefForm: React.FC = () => {
 
   useTerminalReveal(containerRef, { delay: 0 });
 
-  // Clear errors when moving between steps to prevent premature validation alerts
   useEffect(() => {
     setErrors({});
     if (stepRef.current) {
@@ -65,15 +64,14 @@ export const StrategicBriefForm: React.FC = () => {
   const handleSubmit = async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
       
-      // Reset local error state immediately on attempt
       setErrors({});
       
       try {
-          // 1. Validate against strict B2B schema BEFORE setting submitting state
           const validationResult = LeadSanitySchema.safeParse({
             email: brief.email,
             staffCount: brief.staffCount,
             estimatedWastedHours: brief.hoursWasted,
+            hourlyRate: brief.hourlyRate,
             qualificationScore: qualificationScore || 0,
             scheduledTime: brief.scheduledTime
           });
@@ -84,7 +82,7 @@ export const StrategicBriefForm: React.FC = () => {
               if (issue.path[0]) fieldErrors[issue.path[0].toString()] = issue.message;
             });
             setErrors(fieldErrors);
-            return; // Stop here, button stays active
+            return;
           }
 
           if (brief.bottlenecks.length === 0) {
@@ -93,7 +91,6 @@ export const StrategicBriefForm: React.FC = () => {
             return;
           }
 
-          // 2. All checks passed, enter submission state
           setSubmitting(true);
           
           const formData = {
@@ -101,6 +98,7 @@ export const StrategicBriefForm: React.FC = () => {
             email: brief.email,
             staffCount: brief.staffCount,
             hoursWastedPerPerson: brief.hoursWasted,
+            hourlyRate: brief.hourlyRate,
             bottlenecks: brief.bottlenecks.join(", "),
             goals: brief.goals,
             scheduledTime: brief.scheduledTime,
@@ -122,7 +120,6 @@ export const StrategicBriefForm: React.FC = () => {
           console.error("System Error during Brief Dispatch:", err);
           setErrors({ global: "Intelligence link disrupted. Re-initializing secure link..." });
       } finally {
-          // CRITICAL: Ensure CTA is re-enabled regardless of result
           setSubmitting(false);
       }
   };
@@ -155,7 +152,18 @@ export const StrategicBriefForm: React.FC = () => {
               <div ref={stepRef}>
                   {formStep === 1 && <StepBottlenecks bottlenecks={brief.bottlenecks} setBottlenecks={(val) => setBriefData({ bottlenecks: val })} error={errors.bottlenecks} />}
                   {formStep === 2 && <StepOutcomes goals={brief.goals} setGoals={(val) => setBriefData({ goals: val })} />}
-                  {formStep === 3 && <StepMultiplier staffCount={brief.staffCount} hoursWasted={brief.hoursWasted} calculatedROI={calculatedROI} setStaffCount={(val) => setBriefData({ staffCount: val })} setHoursWasted={(val) => setBriefData({ hoursWasted: val })} error={errors.staffCount || errors.estimatedWastedHours} />}
+                  {formStep === 3 && (
+                    <StepMultiplier 
+                        staffCount={brief.staffCount} 
+                        hoursWasted={brief.hoursWasted} 
+                        hourlyRate={brief.hourlyRate}
+                        calculatedROI={calculatedROI} 
+                        setStaffCount={(val) => setBriefData({ staffCount: val })} 
+                        setHoursWasted={(val) => setBriefData({ hoursWasted: val })} 
+                        setHourlyRate={(val) => setBriefData({ hourlyRate: val })}
+                        error={errors.staffCount || errors.estimatedWastedHours || errors.hourlyRate} 
+                    />
+                  )}
                   {formStep === 4 && <StepIdentity email={brief.email} setEmail={(val) => setBriefData({ email: val })} scheduledTime={brief.scheduledTime} onSelectTime={(val) => setBriefData({ scheduledTime: val })} error={errors.email || errors.scheduledTime} />}
               </div>
               {errors.global && (
@@ -164,7 +172,6 @@ export const StrategicBriefForm: React.FC = () => {
                 </div>
               )}
           </div>
-          {/* Note: FormNavigation handles the internal button click logic */}
           <FormNavigation 
             step={formStep} 
             totalSteps={4} 

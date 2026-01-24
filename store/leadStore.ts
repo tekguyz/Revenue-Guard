@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { LeadState } from '../types';
@@ -16,6 +17,7 @@ const initialState = {
     goals: '',
     staffCount: 0,
     hoursWasted: 0,
+    hourlyRate: ROI_CONSTANTS.DEFAULT_HOURLY_RATE,
     email: '',
   },
   formStep: 1,
@@ -41,14 +43,13 @@ export const useLeadStore = create<ExtendedLeadState>()(
       setSubmitting: (isSubmitting) => set({ isSubmitting }),
 
       calculateROI: () => {
-        const { staffCount, hoursWasted } = get().brief;
+        const { staffCount, hoursWasted, hourlyRate } = get().brief;
         
-        // REVENUE GUARD: Using centralized constants from schemas/integrity.ts
-        const hourlyRate = ROI_CONSTANTS.HOURLY_RATE_OPS; 
         const efficiencyMultiplier = ROI_CONSTANTS.EFFICIENCY_FACTOR;
         
         const annualHours = hoursWasted * staffCount * 52;
-        const savings = annualHours * hourlyRate * efficiencyMultiplier;
+        // Using dynamic hourlyRate instead of hardcoded constant
+        const savings = annualHours * (hourlyRate || ROI_CONSTANTS.DEFAULT_HOURLY_RATE) * efficiencyMultiplier;
         
         set({ calculatedROI: Math.floor(savings) });
       },

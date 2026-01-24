@@ -1,3 +1,4 @@
+
 export type Theme = 'light' | 'dark';
 
 export type ViewMode = 'strategist' | 'assessment' | 'dashboard';
@@ -22,6 +23,7 @@ export interface BriefFormData {
   goals: string;
   staffCount: number;
   hoursWasted: number;
+  hourlyRate: number; // Added dynamic rate
   email: string;
   scheduledTime?: string;
 }
