@@ -1,5 +1,4 @@
-
-import { z } from 'zmin-h';
+import { z } from 'zod';
 
 /**
  * TEKGUYZ FINANCIAL CONSTANTS (Defaults)
