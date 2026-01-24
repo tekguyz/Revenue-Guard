@@ -19,6 +19,7 @@ const initialState = {
     hoursWasted: 0,
     hourlyRate: ROI_CONSTANTS.DEFAULT_HOURLY_RATE,
     email: '',
+    scheduledTime: '',
   },
   formStep: 1,
   isSubmitting: false,
@@ -48,7 +49,6 @@ export const useLeadStore = create<ExtendedLeadState>()(
         const efficiencyMultiplier = ROI_CONSTANTS.EFFICIENCY_FACTOR;
         
         const annualHours = hoursWasted * staffCount * 52;
-        // Using dynamic hourlyRate instead of hardcoded constant
         const savings = annualHours * (hourlyRate || ROI_CONSTANTS.DEFAULT_HOURLY_RATE) * efficiencyMultiplier;
         
         set({ calculatedROI: Math.floor(savings) });
@@ -61,6 +61,14 @@ export const useLeadStore = create<ExtendedLeadState>()(
     {
       name: 'revenue-guard-lead',
       storage: createJSONStorage(() => localStorage),
+      // Exclude isSubmitting and formStep from persistence to avoid dead-end states on refresh
+      partialize: (state) => ({
+        sessionId: state.sessionId,
+        startedAt: state.startedAt,
+        brief: state.brief,
+        calculatedROI: state.calculatedROI,
+        auditComplete: state.auditComplete
+      }) as any,
     }
   )
 );

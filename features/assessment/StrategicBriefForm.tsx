@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useLeadStore } from '../../store/leadStore';
 import { useUIStore } from '../../store/uiStore';
 import { useInteractionStore } from '../../store/interactionStore';
-import { z } from 'zod';
 import { useTerminalReveal } from '../../components/animations/useTerminalReveal';
 import { TerminalLoader } from '../../components/ui/TerminalLoader';
 import { StepBottlenecks } from './components/StepBottlenecks';
@@ -67,30 +66,45 @@ export const StrategicBriefForm: React.FC = () => {
       setErrors({});
       
       try {
-          const validationResult = LeadSanitySchema.safeParse({
-            email: brief.email,
-            staffCount: brief.staffCount,
-            estimatedWastedHours: brief.hoursWasted,
-            hourlyRate: brief.hourlyRate,
-            qualificationScore: qualificationScore || 0,
-            scheduledTime: brief.scheduledTime
-          });
-
-          if (!validationResult.success) {
-            const fieldErrors: Record<string, string> = {};
-            validationResult.error.issues.forEach(issue => {
-              if (issue.path[0]) fieldErrors[issue.path[0].toString()] = issue.message;
-            });
-            setErrors(fieldErrors);
-            return;
-          }
-
+          // 1. Check bottlenecks first as it's a manual check
           if (brief.bottlenecks.length === 0) {
             setErrors({ bottlenecks: "Select at least one friction point" });
             setFormStep(1);
             return;
           }
 
+          // 2. Full schema validation
+          const validationResult = LeadSanitySchema.safeParse({
+            email: brief.email,
+            staffCount: brief.staffCount,
+            estimatedWastedHours: brief.hoursWasted,
+            hourlyRate: brief.hourlyRate,
+            qualificationScore: qualificationScore || 0,
+            scheduledTime: brief.scheduledTime || ""
+          });
+
+          if (!validationResult.success) {
+            const fieldErrors: Record<string, string> = {};
+            let firstErrorField = "";
+            
+            validationResult.error.issues.forEach(issue => {
+              const path = issue.path[0]?.toString() || "";
+              if (!firstErrorField) firstErrorField = path;
+              fieldErrors[path] = issue.message;
+            });
+            
+            setErrors(fieldErrors);
+
+            // AUTO-NAVIGATE to the step with the first error
+            if (["staffCount", "estimatedWastedHours", "hourlyRate"].includes(firstErrorField)) {
+              setFormStep(3);
+            } else if (["email", "scheduledTime"].includes(firstErrorField)) {
+              setFormStep(4);
+            }
+            return;
+          }
+
+          // 3. Dispatch
           setSubmitting(true);
           
           const formData = {
@@ -164,7 +178,16 @@ export const StrategicBriefForm: React.FC = () => {
                         error={errors.staffCount || errors.estimatedWastedHours || errors.hourlyRate} 
                     />
                   )}
-                  {formStep === 4 && <StepIdentity email={brief.email} setEmail={(val) => setBriefData({ email: val })} scheduledTime={brief.scheduledTime} onSelectTime={(val) => setBriefData({ scheduledTime: val })} error={errors.email || errors.scheduledTime} />}
+                  {formStep === 4 && (
+                    <StepIdentity 
+                      email={brief.email} 
+                      setEmail={(val) => setBriefData({ email: val })} 
+                      scheduledTime={brief.scheduledTime} 
+                      onSelectTime={(val) => setBriefData({ scheduledTime: val })} 
+                      emailError={errors.email}
+                      timeError={errors.scheduledTime}
+                    />
+                  )}
               </div>
               {errors.global && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-mono uppercase text-center animate-pulse">

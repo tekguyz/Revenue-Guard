@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ShieldCheck, Mail } from 'lucide-react';
+import { ShieldCheck, Mail, AlertCircle } from 'lucide-react';
 import { BriefingScheduler } from '../../../components/ui/BriefingScheduler';
 
 interface StepIdentityProps {
@@ -7,7 +8,8 @@ interface StepIdentityProps {
   setEmail: (val: string) => void;
   scheduledTime?: string;
   onSelectTime: (time: string) => void;
-  error?: string;
+  emailError?: string;
+  timeError?: string;
 }
 
 export const StepIdentity: React.FC<StepIdentityProps> = ({ 
@@ -15,7 +17,8 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
   setEmail, 
   scheduledTime, 
   onSelectTime, 
-  error 
+  emailError,
+  timeError
 }) => {
   return (
     <div className="space-y-8">
@@ -36,14 +39,18 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
           <input 
             id="email"
             type="email" 
-            className={`w-full p-4 rounded-xl bg-light-bg dark:bg-dark-bg border ${error ? 'border-red-500' : 'border-light-border dark:border-dark-border'} focus:ring-2 focus:ring-brand text-light-text dark:text-dark-text text-base font-medium`}
+            className={`w-full p-4 rounded-xl bg-light-bg dark:bg-dark-bg border ${emailError ? 'border-red-500 ring-1 ring-red-500' : 'border-light-border dark:border-dark-border'} focus:ring-2 focus:ring-brand text-light-text dark:text-dark-text text-base font-medium`}
             placeholder="name@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            aria-invalid={!!error}
-            aria-describedby={error ? "email-error" : undefined}
+            aria-invalid={!!emailError}
+            aria-describedby={emailError ? "email-error" : undefined}
           />
-          {error && <p id="email-error" className="text-red-500 text-[10px] mt-1 font-mono uppercase tracking-tight" role="alert">{error}</p>}
+          {emailError && (
+            <p id="email-error" className="text-red-500 text-[10px] mt-1.5 font-mono uppercase tracking-tight flex items-center gap-1" role="alert">
+              <AlertCircle className="w-3 h-3" /> {emailError}
+            </p>
+          )}
         </div>
 
         <div className="pt-4 border-t border-light-border dark:border-dark-border">
@@ -54,6 +61,11 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
             selectedTime={scheduledTime}
             onSelect={onSelectTime}
           />
+          {timeError && (
+            <p className="text-red-500 text-[10px] mt-3 font-mono uppercase tracking-tight flex items-center justify-center gap-1 bg-red-50 py-2 rounded-lg border border-red-100" role="alert">
+              <AlertCircle className="w-3 h-3" /> {timeError}
+            </p>
+          )}
         </div>
       </div>
     </div>
