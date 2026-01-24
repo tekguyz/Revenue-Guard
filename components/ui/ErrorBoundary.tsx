@@ -12,15 +12,17 @@ interface State {
   error: Error | null;
 }
 
-// Fixed class definition to ensure property inference and explicitly using React.Component
-export class ErrorBoundary extends React.Component<Props, State> {
-  // Added constructor to ensure props are correctly passed to the base component and state is initialized
+// ErrorBoundary: Catches rendering errors in the component tree.
+// Standardized inheritance and property initialization to resolve "Property 'state'/'props' does not exist" errors.
+export class ErrorBoundary extends Component<Props, State> {
+  // Initialize state directly as a class property for robust TypeScript property inference
+  public state: State = {
+    hasError: false,
+    error: null,
+  };
+
   constructor(props: Props) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-    };
   }
 
   public static getDerivedStateFromError(error: Error): State {
@@ -40,7 +42,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   };
 
   public render() {
-    // Destructuring state and props to resolve potential 'this' context issues and improve compiler type awareness
+    // Access state and props via 'this' - the Component base class provides these when inherited correctly
     const { hasError } = this.state;
     const { children } = this.props;
 
