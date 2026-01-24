@@ -43,16 +43,21 @@ export const StrategicBriefForm: React.FC = () => {
   useTerminalReveal(containerRef, { delay: 0 });
 
   const updateField = (data: Partial<typeof brief>) => {
-    // Pure state update, no validation here
+    // 1. Update the store immediately
     setBriefData(data);
-    const keys = Object.keys(data);
-    if (keys.length > 0) {
+    
+    // 2. TOTAL ERROR CLEAR: If user interacts with ANYTHING on Step 4, clear all errors.
+    // This stops an old "Email" error from lingering while they pick a time.
+    if (formStep === 4) {
+      setErrors({});
+    } else {
       setErrors(prev => {
         const next = { ...prev };
-        keys.forEach(k => {
+        Object.keys(data).forEach(k => {
           delete next[k];
           if (k === 'hoursWasted') delete next['estimatedWastedHours'];
           if (k === 'scheduledTime') delete next['scheduledTime'];
+          if (k === 'email') delete next['email'];
         });
         return next;
       });
@@ -78,12 +83,13 @@ export const StrategicBriefForm: React.FC = () => {
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
-      // CRITICAL: Prevent default to stop any native form submission behavior
+      // SHIELD: Stop all event propagation immediately.
       if (e) {
           e.preventDefault();
           e.stopPropagation();
       }
       
+      // Clear errors for a fresh validation run
       setErrors({});
       
       try {
@@ -110,9 +116,9 @@ export const StrategicBriefForm: React.FC = () => {
               const path = issue.path[0]?.toString() || "";
               fieldErrors[path] = issue.message;
               
-              if (["staffCount", "estimatedWastedHours", "hourlyRate"].includes(path) && targetStep === formStep) {
+              if (["staffCount", "estimatedWastedHours", "hourlyRate"].includes(path)) {
                 targetStep = 3;
-              } else if (["email", "scheduledTime"].includes(path) && targetStep === formStep) {
+              } else if (["email", "scheduledTime"].includes(path)) {
                 targetStep = 4;
               }
             });
@@ -120,6 +126,7 @@ export const StrategicBriefForm: React.FC = () => {
             setErrors(fieldErrors);
             if (targetStep !== formStep) setFormStep(targetStep);
             
+            // Visual Shake Feedback
             containerRef.current?.animate([
                 { transform: 'translateX(0)' },
                 { transform: 'translateX(-5px)' },
@@ -130,6 +137,7 @@ export const StrategicBriefForm: React.FC = () => {
             return;
           }
 
+          // PASSED: Proceed to submission
           setSubmitting(true);
           
           const formData = {
@@ -183,8 +191,8 @@ export const StrategicBriefForm: React.FC = () => {
           onSubmit={handleSubmit} 
           className="contents"
           onKeyDown={(e) => {
-            // Prevent Enter key from submitting globally unless it's the specific submit step
-            if (e.key === 'Enter' && formStep < 4) {
+            // Prevent Enter key from submitting accidentally
+            if (e.key === 'Enter') {
               e.preventDefault();
             }
           }}

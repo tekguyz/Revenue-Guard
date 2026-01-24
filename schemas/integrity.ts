@@ -1,42 +1,43 @@
+
 import { z } from 'zod';
 
 /**
  * TEKGUYZ FINANCIAL CONSTANTS (Defaults)
  */
 export const ROI_CONSTANTS = {
-  DEFAULT_HOURLY_RATE: 35, // Adjusted to a more realistic "General Ops" baseline
+  DEFAULT_HOURLY_RATE: 35, 
   EFFICIENCY_FACTOR: 0.70 
 } as const;
 
-const BUSINESS_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?!((gmail|yahoo|hotmail|outlook|icloud|aol|protonmail|zoho|mail|yandex|gmx)\.))([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/i;
-
+// Allowing all valid email formats. No more generic provider blocking.
 export const LeadSanitySchema = z.object({
   email: z.string()
-    .email("Invalid email format")
-    .regex(BUSINESS_EMAIL_REGEX, "Please use a valid business email address. Generic providers are restricted."),
+    .min(1, "Email is required")
+    .email("Please provide a valid email address (e.g. name@domain.com)"),
   
   staffCount: z.number()
     .int()
     .min(1, "Team size must be at least 1")
-    .max(50000),
+    .max(100000),
 
   estimatedWastedHours: z.number()
-    .min(0.5, "Minimum 0.5 hours per person")
-    .max(168, "A week only has 168 hours."),
+    .min(0.1, "Minimum 0.1 hours per person")
+    .max(168, "Input exceeds weekly limit"),
 
   hourlyRate: z.number()
-    .min(15, "Rate must be at least minimum wage ($15)")
-    .max(1000, "For rates over $1000/hr, please contact enterprise sales."),
+    .min(1, "Rate must be at least $1")
+    .max(5000, "Maximum rate threshold exceeded"),
 
   qualificationScore: z.number().optional(),
   
   scheduledTime: z.string().min(1, "Please select a briefing window"),
 
 }).superRefine((data, ctx) => {
-  if (data.estimatedWastedHours > 60 && (data.qualificationScore || 0) < 3) {
+  // Logic remains for high-level anomaly detection, but does not block email providers.
+  if (data.estimatedWastedHours > 120) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "High friction reported. Data marked for manual verification.",
+      message: "Anomalous hour count detected. Proceeding with manual audit.",
       path: ["estimatedWastedHours"]
     });
   }

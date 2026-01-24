@@ -30,6 +30,7 @@ export const BriefingScheduler: React.FC<BriefingSchedulerProps> = ({ selectedTi
             type="button"
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation(); // Explicitly block event bubble to form
               setActiveDay(i);
             }}
             className={`flex-shrink-0 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
@@ -57,6 +58,7 @@ export const BriefingScheduler: React.FC<BriefingSchedulerProps> = ({ selectedTi
               type="button"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Explicitly block event bubble to form
                 onSelect(fullTime);
               }}
               className={`flex items-center justify-between p-3 rounded-xl border text-sm transition-all ${
