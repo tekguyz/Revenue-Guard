@@ -40,14 +40,13 @@ export const StrategicBriefForm: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Initial reveal for the whole form container
   useTerminalReveal(containerRef, { delay: 0 });
 
   const updateField = (data: Partial<typeof brief>) => {
-    // 1. Update the store immediately
     setBriefData(data);
     
-    // 2. TOTAL ERROR CLEAR: If user interacts with ANYTHING on Step 4, clear all errors.
-    // This stops an old "Email" error from lingering while they pick a time.
+    // Auto-clear error when field is updated
     if (formStep === 4) {
       setErrors({});
     } else {
@@ -65,7 +64,6 @@ export const StrategicBriefForm: React.FC = () => {
   };
 
   useEffect(() => {
-    setErrors({});
     if (stepRef.current) {
        stepRef.current.animate([
            { opacity: 0, transform: 'translateX(20px)' },
@@ -83,22 +81,22 @@ export const StrategicBriefForm: React.FC = () => {
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
-      // SHIELD: Stop all event propagation immediately.
       if (e) {
           e.preventDefault();
           e.stopPropagation();
       }
       
-      // Clear errors for a fresh validation run
       setErrors({});
       
       try {
+          // Validation Step 1: Bottlenecks (Manual check for UI feedback)
           if (brief.bottlenecks.length === 0) {
             setErrors({ bottlenecks: "Select at least one friction point" });
             setFormStep(1);
             return;
           }
 
+          // Validation Step 2: Zod Integrity Shield
           const validationResult = LeadSanitySchema.safeParse({
             email: brief.email,
             staffCount: brief.staffCount,
@@ -137,7 +135,7 @@ export const StrategicBriefForm: React.FC = () => {
             return;
           }
 
-          // PASSED: Proceed to submission
+          // Proceeding to Secure Submission
           setSubmitting(true);
           
           const formData = {
@@ -159,31 +157,45 @@ export const StrategicBriefForm: React.FC = () => {
             body: encode(formData)
           });
 
-          if (!response.ok) throw new Error("Netlify Form Dispatch Failed");
+          if (!response.ok) {
+            throw new Error(`Netlink Error: ${response.status} ${response.statusText}`);
+          }
 
+          // Success Logic
           setAuditComplete(true);
           setShowSuccess(true);
       } catch (err) {
-          console.error("System Error during Brief Dispatch:", err);
-          setErrors({ global: "Intelligence link disrupted. Re-initializing secure link..." });
+          console.error("Critical Brief Dispatch Error:", err);
+          setErrors({ global: "The intelligence link rejected the payload. Ensure your business email is correctly formatted and try again." });
       } finally {
           setSubmitting(false);
       }
   };
 
-  if (showSuccess) return <BriefSuccess calculatedROI={calculatedROI} email={brief.email} scheduledTime={brief.scheduledTime} onViewDashboard={() => setView('dashboard')} />;
+  if (showSuccess) {
+    return (
+      <div className="h-full bg-white border-l border-light-border shadow-2xl overflow-hidden">
+        <BriefSuccess 
+          calculatedROI={calculatedROI} 
+          email={brief.email} 
+          scheduledTime={brief.scheduledTime} 
+          onViewDashboard={() => setView('dashboard')} 
+        />
+      </div>
+    );
+  }
 
   if (isSubmitting) {
       return (
-          <div className="h-full flex flex-col items-center justify-center p-8 bg-white">
-              <TerminalLoader className="w-full max-w-md h-64" />
-              <p className="mt-4 text-xs font-mono text-brand animate-pulse uppercase tracking-widest font-black">Securing Intelligence Vault...</p>
+          <div className="h-full flex flex-col items-center justify-center p-8 bg-black border-l border-light-border shadow-2xl overflow-hidden">
+              <TerminalLoader className="w-full flex-grow h-full" />
+              <p className="mt-6 text-[10px] font-mono text-brand animate-pulse uppercase tracking-[0.3em] font-black">Dispatching Intelligence Payload...</p>
           </div>
       );
   }
 
   return (
-    <article ref={containerRef} className="bg-white border-l border-light-border h-full flex flex-col opacity-0 overflow-hidden shadow-2xl">
+    <article ref={containerRef} className="bg-white border-l border-light-border h-full flex flex-col opacity-0 overflow-hidden shadow-2xl transition-opacity duration-300">
         <form 
           name="strategic-brief" 
           method="POST" 
@@ -191,13 +203,14 @@ export const StrategicBriefForm: React.FC = () => {
           onSubmit={handleSubmit} 
           className="contents"
           onKeyDown={(e) => {
-            // Prevent Enter key from submitting accidentally
             if (e.key === 'Enter') {
               e.preventDefault();
             }
           }}
         >
+          {/* Netlify form hidden identify field */}
           <input type="hidden" name="form-name" value="strategic-brief" />
+          
           <div className="p-6 border-b border-light-border bg-white sticky top-0 z-10" aria-hidden="true">
               <div className="flex justify-between items-center mb-2">
                   <span className="text-[10px] font-mono uppercase text-brand font-black tracking-widest">Strategic Assessment Protocol</span>
@@ -207,6 +220,7 @@ export const StrategicBriefForm: React.FC = () => {
                   <div className="h-full bg-brand transition-all duration-500 ease-out shadow-[0_0_8px_#3500D3]" style={{ width: `${(formStep / 4) * 100}%` }}></div>
               </div>
           </div>
+          
           <div className="flex-grow p-8 overflow-y-auto no-scrollbar pb-24">
               <div ref={stepRef}>
                   {formStep === 1 && <StepBottlenecks bottlenecks={brief.bottlenecks} setBottlenecks={(val) => updateField({ bottlenecks: val })} error={errors.bottlenecks} />}
@@ -234,12 +248,15 @@ export const StrategicBriefForm: React.FC = () => {
                     />
                   )}
               </div>
+              
               {errors.global && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-mono uppercase text-center animate-pulse">
+                <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-mono uppercase text-center animate-in fade-in slide-in-from-top-2">
+                  <div className="font-black mb-1 text-[10px]">Dispatch Failed</div>
                   {errors.global}
                 </div>
               )}
           </div>
+          
           <FormNavigation 
             step={formStep} 
             totalSteps={4} 

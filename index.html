@@ -58,6 +58,20 @@
 </head>
   <body>
     <div id="root"></div>
+
+    <!-- Hidden form for Netlify to detect and register the 'strategic-brief' endpoint -->
+    <form name="strategic-brief" netlify netlify-honeypot="bot-field" hidden>
+      <input type="email" name="email" />
+      <input type="number" name="staffCount" />
+      <input type="number" name="hoursWastedPerPerson" />
+      <input type="number" name="hourlyRate" />
+      <textarea name="bottlenecks"></textarea>
+      <textarea name="goals"></textarea>
+      <input type="text" name="scheduledTime" />
+      <input type="number" name="roiProjection" />
+      <input type="number" name="qualificationScore" />
+    </form>
+
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

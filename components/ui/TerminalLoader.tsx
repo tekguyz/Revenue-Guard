@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { RGLogo } from './RGLogo';
 
@@ -15,23 +16,25 @@ export const TerminalLoader: React.FC<{ className?: string }> = ({ className = '
     const chars = '0123456789ABCDEF';
     const fontSize = 14;
     
-    // Resize handler
     const resize = () => {
-      canvas.width = canvas.clientWidth;
-      canvas.height = canvas.clientHeight;
+      if (canvas.parentElement) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      }
     };
+    
     resize();
-    window.addEventListener('resize', resize);
+    const resizeObserver = new ResizeObserver(resize);
+    if (canvas.parentElement) resizeObserver.observe(canvas.parentElement);
 
-    const columns = Math.ceil(canvas.width / fontSize);
-    const drops = new Array(columns).fill(0).map(() => Math.random() * -100); // Start above canvas
+    const columns = Math.ceil(window.innerWidth / fontSize);
+    const drops = new Array(columns).fill(0).map(() => Math.random() * -100);
 
     const draw = () => {
-      // Semi-transparent fade for trail effect
       ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#00FF41'; // Terminal Green
+      ctx.fillStyle = '#00FF41';
       ctx.font = `${fontSize}px monospace`;
 
       for (let i = 0; i < drops.length; i++) {
@@ -41,7 +44,6 @@ export const TerminalLoader: React.FC<{ className?: string }> = ({ className = '
 
         ctx.fillText(text, x, y);
 
-        // Random reset to top
         if (y > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
@@ -54,15 +56,15 @@ export const TerminalLoader: React.FC<{ className?: string }> = ({ className = '
     draw();
 
     return () => {
-      window.removeEventListener('resize', resize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
-    <div className={`relative overflow-hidden bg-black/90 rounded-xl border border-dark-border ${className}`}>
-        <canvas ref={canvasRef} className="w-full h-full opacity-30" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+    <div className={`relative overflow-hidden bg-black/90 rounded-xl border border-dark-border flex-grow ${className}`}>
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-30" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
             <div className="animate-pulse">
                 <RGLogo size={48} />
             </div>
