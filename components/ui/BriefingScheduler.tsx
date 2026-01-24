@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, Check } from 'lucide-react';
 
@@ -26,7 +27,11 @@ export const BriefingScheduler: React.FC<BriefingSchedulerProps> = ({ selectedTi
         {days.map((day, i) => (
           <button
             key={i}
-            onClick={() => setActiveDay(i)}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveDay(i);
+            }}
             className={`flex-shrink-0 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
               activeDay === i 
                 ? 'bg-brand text-white border-brand shadow-lg shadow-brand/20' 
@@ -49,7 +54,11 @@ export const BriefingScheduler: React.FC<BriefingSchedulerProps> = ({ selectedTi
           return (
             <button
               key={slot}
-              onClick={() => onSelect(fullTime)}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onSelect(fullTime);
+              }}
               className={`flex items-center justify-between p-3 rounded-xl border text-sm transition-all ${
                 isSelected 
                   ? 'border-accent bg-accent/5 ring-1 ring-accent text-accent' 

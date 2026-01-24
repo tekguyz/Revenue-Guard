@@ -42,8 +42,8 @@ export const StrategicBriefForm: React.FC = () => {
 
   useTerminalReveal(containerRef, { delay: 0 });
 
-  // 1. Reactive Error Clearing: Remove error for a field when its value changes
   const updateField = (data: Partial<typeof brief>) => {
+    // Pure state update, no validation here
     setBriefData(data);
     const keys = Object.keys(data);
     if (keys.length > 0) {
@@ -51,7 +51,6 @@ export const StrategicBriefForm: React.FC = () => {
         const next = { ...prev };
         keys.forEach(k => {
           delete next[k];
-          // Special cases for mapped fields
           if (k === 'hoursWasted') delete next['estimatedWastedHours'];
           if (k === 'scheduledTime') delete next['scheduledTime'];
         });
@@ -79,20 +78,21 @@ export const StrategicBriefForm: React.FC = () => {
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
-      if (e) e.preventDefault();
+      // CRITICAL: Prevent default to stop any native form submission behavior
+      if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+      }
       
-      // Clear all errors before re-validating
       setErrors({});
       
       try {
-          // Check bottlenecks manually first
           if (brief.bottlenecks.length === 0) {
             setErrors({ bottlenecks: "Select at least one friction point" });
             setFormStep(1);
             return;
           }
 
-          // Full schema validation
           const validationResult = LeadSanitySchema.safeParse({
             email: brief.email,
             staffCount: brief.staffCount,
@@ -110,7 +110,6 @@ export const StrategicBriefForm: React.FC = () => {
               const path = issue.path[0]?.toString() || "";
               fieldErrors[path] = issue.message;
               
-              // Map error to correct step if not on current
               if (["staffCount", "estimatedWastedHours", "hourlyRate"].includes(path) && targetStep === formStep) {
                 targetStep = 3;
               } else if (["email", "scheduledTime"].includes(path) && targetStep === formStep) {
@@ -121,7 +120,6 @@ export const StrategicBriefForm: React.FC = () => {
             setErrors(fieldErrors);
             if (targetStep !== formStep) setFormStep(targetStep);
             
-            // Visual feedback that "Something happened" (Shake)
             containerRef.current?.animate([
                 { transform: 'translateX(0)' },
                 { transform: 'translateX(-5px)' },
@@ -132,7 +130,6 @@ export const StrategicBriefForm: React.FC = () => {
             return;
           }
 
-          // If we reach here, validation passed
           setSubmitting(true);
           
           const formData = {
@@ -179,7 +176,19 @@ export const StrategicBriefForm: React.FC = () => {
 
   return (
     <article ref={containerRef} className="bg-white border-l border-light-border h-full flex flex-col opacity-0 overflow-hidden shadow-2xl">
-        <form name="strategic-brief" method="POST" data-netlify="true" onSubmit={handleSubmit} className="contents">
+        <form 
+          name="strategic-brief" 
+          method="POST" 
+          data-netlify="true" 
+          onSubmit={handleSubmit} 
+          className="contents"
+          onKeyDown={(e) => {
+            // Prevent Enter key from submitting globally unless it's the specific submit step
+            if (e.key === 'Enter' && formStep < 4) {
+              e.preventDefault();
+            }
+          }}
+        >
           <input type="hidden" name="form-name" value="strategic-brief" />
           <div className="p-6 border-b border-light-border bg-white sticky top-0 z-10" aria-hidden="true">
               <div className="flex justify-between items-center mb-2">
