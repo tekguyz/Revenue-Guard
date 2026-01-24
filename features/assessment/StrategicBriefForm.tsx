@@ -42,6 +42,24 @@ export const StrategicBriefForm: React.FC = () => {
 
   useTerminalReveal(containerRef, { delay: 0 });
 
+  // 1. Reactive Error Clearing: Remove error for a field when its value changes
+  const updateField = (data: Partial<typeof brief>) => {
+    setBriefData(data);
+    const keys = Object.keys(data);
+    if (keys.length > 0) {
+      setErrors(prev => {
+        const next = { ...prev };
+        keys.forEach(k => {
+          delete next[k];
+          // Special cases for mapped fields
+          if (k === 'hoursWasted') delete next['estimatedWastedHours'];
+          if (k === 'scheduledTime') delete next['scheduledTime'];
+        });
+        return next;
+      });
+    }
+  };
+
   useEffect(() => {
     setErrors({});
     if (stepRef.current) {
@@ -63,17 +81,18 @@ export const StrategicBriefForm: React.FC = () => {
   const handleSubmit = async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
       
+      // Clear all errors before re-validating
       setErrors({});
       
       try {
-          // 1. Check bottlenecks first as it's a manual check
+          // Check bottlenecks manually first
           if (brief.bottlenecks.length === 0) {
             setErrors({ bottlenecks: "Select at least one friction point" });
             setFormStep(1);
             return;
           }
 
-          // 2. Full schema validation
+          // Full schema validation
           const validationResult = LeadSanitySchema.safeParse({
             email: brief.email,
             staffCount: brief.staffCount,
@@ -85,26 +104,35 @@ export const StrategicBriefForm: React.FC = () => {
 
           if (!validationResult.success) {
             const fieldErrors: Record<string, string> = {};
-            let firstErrorField = "";
+            let targetStep = formStep;
             
             validationResult.error.issues.forEach(issue => {
               const path = issue.path[0]?.toString() || "";
-              if (!firstErrorField) firstErrorField = path;
               fieldErrors[path] = issue.message;
+              
+              // Map error to correct step if not on current
+              if (["staffCount", "estimatedWastedHours", "hourlyRate"].includes(path) && targetStep === formStep) {
+                targetStep = 3;
+              } else if (["email", "scheduledTime"].includes(path) && targetStep === formStep) {
+                targetStep = 4;
+              }
             });
             
             setErrors(fieldErrors);
+            if (targetStep !== formStep) setFormStep(targetStep);
+            
+            // Visual feedback that "Something happened" (Shake)
+            containerRef.current?.animate([
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(-5px)' },
+                { transform: 'translateX(5px)' },
+                { transform: 'translateX(0)' }
+            ], { duration: 300 });
 
-            // AUTO-NAVIGATE to the step with the first error
-            if (["staffCount", "estimatedWastedHours", "hourlyRate"].includes(firstErrorField)) {
-              setFormStep(3);
-            } else if (["email", "scheduledTime"].includes(firstErrorField)) {
-              setFormStep(4);
-            }
             return;
           }
 
-          // 3. Dispatch
+          // If we reach here, validation passed
           setSubmitting(true);
           
           const formData = {
@@ -164,26 +192,26 @@ export const StrategicBriefForm: React.FC = () => {
           </div>
           <div className="flex-grow p-8 overflow-y-auto no-scrollbar pb-24">
               <div ref={stepRef}>
-                  {formStep === 1 && <StepBottlenecks bottlenecks={brief.bottlenecks} setBottlenecks={(val) => setBriefData({ bottlenecks: val })} error={errors.bottlenecks} />}
-                  {formStep === 2 && <StepOutcomes goals={brief.goals} setGoals={(val) => setBriefData({ goals: val })} />}
+                  {formStep === 1 && <StepBottlenecks bottlenecks={brief.bottlenecks} setBottlenecks={(val) => updateField({ bottlenecks: val })} error={errors.bottlenecks} />}
+                  {formStep === 2 && <StepOutcomes goals={brief.goals} setGoals={(val) => updateField({ goals: val })} />}
                   {formStep === 3 && (
                     <StepMultiplier 
                         staffCount={brief.staffCount} 
                         hoursWasted={brief.hoursWasted} 
                         hourlyRate={brief.hourlyRate}
                         calculatedROI={calculatedROI} 
-                        setStaffCount={(val) => setBriefData({ staffCount: val })} 
-                        setHoursWasted={(val) => setBriefData({ hoursWasted: val })} 
-                        setHourlyRate={(val) => setBriefData({ hourlyRate: val })}
+                        setStaffCount={(val) => updateField({ staffCount: val })} 
+                        setHoursWasted={(val) => updateField({ hoursWasted: val })} 
+                        setHourlyRate={(val) => updateField({ hourlyRate: val })}
                         error={errors.staffCount || errors.estimatedWastedHours || errors.hourlyRate} 
                     />
                   )}
                   {formStep === 4 && (
                     <StepIdentity 
                       email={brief.email} 
-                      setEmail={(val) => setBriefData({ email: val })} 
+                      setEmail={(val) => updateField({ email: val })} 
                       scheduledTime={brief.scheduledTime} 
-                      onSelectTime={(val) => setBriefData({ scheduledTime: val })} 
+                      onSelectTime={(val) => updateField({ scheduledTime: val })} 
                       emailError={errors.email}
                       timeError={errors.scheduledTime}
                     />
